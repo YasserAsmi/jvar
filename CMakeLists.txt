@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(edge)
+project(jvar)
 
 include_directories("include/")
 link_directories("lib/")
@@ -11,17 +11,7 @@ set(LIBRARY_OUTPUT_PATH  "lib/")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-unused-parameter -Wno-variadic-macros")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Og -Wall -Wextra -Wno-unused-parameter -Wno-variadic-macros")
 
-add_library(jvar STATIC base/str.cpp base/util.cpp base/arr.cpp base/var.cpp base/json.cpp)
-add_library(edgedb STATIC db/sql.cpp db/dm.cpp)
-
-add_executable(basetest test/basetest.cpp)
-target_link_libraries(basetest jvar -lrt)
-
-add_executable(parsetest test/parsetest.cpp)
-target_link_libraries(parsetest jvar  -lrt)
-
-add_executable(sqltest test/sqltest.cpp)
-target_link_libraries(sqltest edgedb jvar -L/usr/lib/x86_64-linux-gnu -lmysqlclient -lpthread -lz -lm -lrt -ldl)
+add_library(jvar STATIC src/str.cpp src/util.cpp src/arr.cpp src/var.cpp src/json.cpp)
 
 add_executable(ex_basics example/basics.cpp)
 target_link_libraries(ex_basics jvar -lrt)
