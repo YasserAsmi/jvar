@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Jvar by YasserAsmi</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Jvar</h1>
+        <h2>JS inspired Variants and JSON parsing for C++</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/YasserAsmi/jvar/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/YasserAsmi/jvar/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/YasserAsmi/jvar" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <p>jvar tries to capture some of the expressiveness of JavaScript and bring it into C++.</p><p></p>
+
+<p>In particular, it implements a Variant type which is similar to 'var' in JS.  Like JS, you can store data of any type into it.  You can have objects, arrays, arrays of objects, objects with arrays, etc and nest them to any level.   You can even have function objects with closure.   You can write out Variant as JSON and you can parse JSON directly into a Variant. </p><p></p>
+
+<p>Variant combined with JSON and simple automatic memory management make for a very powerful data structure.
+jvar is designed to be very fast.  Because the backing data structures are optimized, JSON parsing speed is very fast.   Special attention has been paid to how often things are copied and how often memory is allocated.</p><p></p>
+
+<p>jvar doesn't use have any dependencies.  It doesn't use Boost and hardly uses STL.  It only uses std::string--but even with that jvar tries to minimize memory allocations.</p><p></p>
+
+<p>Please take a look at the examples to see if you agree with the added expressiveness. </p><p></p>
+
+<p>Enjoy.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
