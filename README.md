@@ -1,4 +1,14 @@
 jvar
 ====
+jvar tries to capture some of the expressiveness of JavaScript and bring it into C++
 
-JS inspired Variants and JSON parsing for C++
+In particular, it implements a Variant type which is similar to 'var' in JS.  Like JS, you can store data of any type into it.  You can have objects, arrays, arrays of objects, objects with arrays, etc and nest them to any level.   You can even have function objects with closure.   You can write out Variant as JSON and you can parse JSON directly into a Variant.
+
+Variant combined with JSON and simple automatic memory management make for a very powerful data structure.
+jvar is designed to be very fast.  Because the backing data structures are optimized, JSON parsing speed is very fast.   Special attention has been paid to how often things are copied and how often memory is allocated.
+
+jvar doesn't use have any dependencies.  It doesn't use Boost and hardly uses STL.  It only uses std::string--but even with that jvar tries to minimize memory allocations.
+
+Please take a look at the examples to see if you agree with the added expressiveness.
+
+Enjoy.
