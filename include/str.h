@@ -230,16 +230,6 @@ public:
     {
         mFixed[0] = '\0';
     }
-    ~FixedStr()
-    {
-        if (mFixed[0] == '\1')
-        {
-            if (mDyn.ptr)
-            {
-                free(mDyn.ptr);
-            }
-        }
-    }
     inline FixedStr(const FixedStr& src)
     {
         mFixed[0] = '\0';
@@ -250,12 +240,17 @@ public:
         mFixed[0] = '\0';
         set(src.get());
     }
-    inline FixedStr& operator=(const FixedStr& src)
+    ~FixedStr()
     {
-        set(src.get());
-        return *this;
+        if (mFixed[0] == '\1')
+        {
+            if (mDyn.ptr)
+            {
+                free(mDyn.ptr);
+            }
+        }
     }
-    inline FixedStr& operator=(const FixedStr* src)
+    inline FixedStr& operator=(const FixedStr& src)
     {
         set(src.get());
         return *this;

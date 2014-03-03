@@ -17,6 +17,28 @@
 namespace jvar
 {
 
+/** \cond INTERNAL */
+class VarSuppImpl : public InterfaceImpl
+{
+public:
+    VarSuppImpl() :
+        mSupp(NULL)
+    {
+    }
+    virtual ~VarSuppImpl()
+    {
+    }
+    virtual InterfaceImpl* newImpl()
+    {
+        return (InterfaceImpl*) (new VarSuppImpl());
+    }
+
+public:
+    FixedStr<24> mClassName;
+    void* mSupp;
+};
+/** \endcond */
+
 class VarFuncObj;
 
 /**
@@ -584,6 +606,15 @@ public:
     bool hasProperty(const char* key);
 
     /**
+     * Remove a property
+     *
+     * @param  key Key name for the property
+     *
+     * @return     True if removed, false otherwise
+     */
+    bool removeProperty(const char* key);
+
+    /**
      * Returns the key name at a given index
      *
      * @param  n Index position
@@ -665,6 +696,11 @@ public:
     {
         return isFlagSet(mData.flags, VF_MODIFIED);
     }
+
+/** \cond INTERNAL */
+    void setSuppImplData(const char* name, void* supp);
+    void getSuppImplData(const char** name, void** supp);
+/** \endcond */
 
 private:
 

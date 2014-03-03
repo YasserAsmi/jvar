@@ -50,14 +50,6 @@ namespace jvar
     #define dbgfnc()
 
     #define dbghex(label, ptr, len)
-
-//namespace jvar
-//{
-//    void dbghex(const char* label, const void* ptr, int len)
-//    {
-//    }
-//}
-
 #endif
 
 #define isFlagSet(value, flag)         ( ((value) & (flag)) != 0 )

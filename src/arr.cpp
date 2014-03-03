@@ -116,7 +116,7 @@ bool BArray::remove(int pos)
 
     int shift = (length() - pos - 1);
 
-    dbgtrc("delete memmove(%d, %d, %d)\n", pos, pos + 1, shift);
+    //dbgtrc("delete memmove(%d, %d, %d)\n", pos, pos + 1, shift);
 
     if (shift > 0)
     {

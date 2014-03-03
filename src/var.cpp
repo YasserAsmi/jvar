@@ -504,6 +504,22 @@ Variant& Variant::addProperty(const char* key, const Variant& value /* = vEmpty 
 }
 
 
+bool Variant::removeProperty(const char* key)
+{
+    assert(key);
+
+    if (mData.type == V_OBJECT)
+    {
+        if (mData.objectData->remove(key))
+        {
+            setModified();
+            return true;
+        }
+    }
+    return false;
+}
+
+
 const char* Variant::getKey(int n)
 {
     if (mData.type == V_OBJECT)
@@ -1168,6 +1184,59 @@ void Variant::internalSetPtr(const Variant* v)
     }
 }
 
+void Variant::setSuppImplData(const char* name, void* supp)
+{
+    VarSuppImpl* impl = NULL;
+
+    if (mData.type == V_OBJECT)
+    {
+        impl = (VarSuppImpl*)mData.objectData->getSupportImpl();
+        if (impl == NULL)
+        {
+            impl = (VarSuppImpl*)mData.objectData->setSupportImpl(new VarSuppImpl());
+        }
+    }
+    else if (mData.type == V_ARRAY)
+    {
+        impl = (VarSuppImpl*)mData.arrayData->getSupportImpl();
+        if (impl == NULL)
+        {
+            impl = (VarSuppImpl*)mData.arrayData->setSupportImpl(new VarSuppImpl());
+        }
+    }
+    if (impl != NULL)
+    {
+        impl->mClassName.set(name);
+        impl->mSupp = supp;
+    }
+    else
+    {
+        dbgerr("Cannot set support data\n");
+    }
+}
+
+void Variant::getSuppImplData(const char** name, void** supp)
+{
+    VarSuppImpl* impl = NULL;
+
+    if (mData.type == V_OBJECT)
+    {
+        impl = (VarSuppImpl*)mData.objectData->getSupportImpl();
+    }
+    else if (mData.type == V_ARRAY)
+    {
+        impl = (VarSuppImpl*)mData.arrayData->getSupportImpl();
+    }
+    if (impl != NULL)
+    {
+        *name = impl->mClassName.get();
+        *supp = impl->mSupp;
+    }
+    else
+    {
+        dbgerr("Cannot get support data\n");
+    }
+}
 
 
 } // jvar

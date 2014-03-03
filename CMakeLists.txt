@@ -9,7 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin/")
 set(LIBRARY_OUTPUT_PATH  "lib/")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Wno-unused-parameter -Wno-variadic-macros")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Og -Wall -Wextra -Wno-unused-parameter -Wno-variadic-macros")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wextra -Wno-unused-parameter -Wno-variadic-macros")
 
 add_library(jvar STATIC src/str.cpp src/util.cpp src/arr.cpp src/var.cpp src/json.cpp)
 

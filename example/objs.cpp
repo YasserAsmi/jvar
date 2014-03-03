@@ -13,7 +13,7 @@ void showIter(Variant& v)
 {
     for (Iter<Variant> i; v.forEach(i); )
     {
-        printf("%d. Key: %s Value: %s\n", i.pos(), i.key(), i->toString().c_str());
+        printf("%d. Key: %s Value: %s (%p)\n", i.pos(), i.key(), i->toString().c_str(), &i);
     }
     printf("\n");
 }
@@ -31,19 +31,32 @@ void showSimple()
     obj.addProperty("PropA", 65);
     obj.addProperty("PropB", 66);
     obj.addProperty("PropC", 67);
+    obj.addProperty("A");
 
     // Update propertie values
 
     obj["PropA"] = 6500;
     obj["PropB"]++;
     obj["PropC"] = (double)obj["PropC"] * 2.0f;
+    obj["A"] = 100;
 
     // Print the entire object as string
 
     printf("%s\n", obj.toString().c_str());
 
+    // Printed:
     // {"PropA":6500,"PropB":67,"PropC":134.0}
 
+    printf("Iterate\n");
+    showIter(obj);
+
+    // Remove a property
+
+    obj.removeProperty("PropB");
+
+    printf("%s\n", obj.toString().c_str());
+
+    printf("Iterate after remove\n");
     showIter(obj);
 }
 

@@ -342,13 +342,15 @@ public:
     }
 
     inline ObjArray(const ObjArray& src) :
-        BArray(sizeof(T), NULL)
+        BArray(sizeof(T), NULL),
+        mSupportImpl(NULL)
     {
         copyFrom((ObjArray&)src);
     }
 
     inline ObjArray(ObjArray& src) :
-        BArray(sizeof(T), NULL)
+        BArray(sizeof(T), NULL),
+        mSupportImpl(NULL)
     {
         copyFrom(src);
     }
@@ -471,7 +473,7 @@ public:
      *
      * @return         Success
      */
-    inline bool remove(const T* keyelem)
+    inline bool removeKey(const T* keyelem)
     {
         int pos;
         if (!binSearch(keyelem, pos))
@@ -724,17 +726,38 @@ public:
      */
     inline bool remove(const char* keyname)
     {
+        bool ret = false;
         int pos;
+
         if (indexFindPos(keyname, pos))
         {
-            int* index = mIndex.get(pos);
-            if (index)
+            int* datlocptr = mIndex.get(pos);
+            if (datlocptr)
             {
+                int dataloc = *datlocptr;
+
+                // Remove the index entry
+
                 mIndex.remove(pos);
-                return mData.remove(*index);
+
+                // Once the data from dataloc will be removed, all content
+                // following it shifts.  Therefore, we must fixup the index entries.
+
+                for (int i = 0; i < mIndex.length(); i++)
+                {
+                    int* p = mIndex.get(i);
+                    if (*p >= dataloc)
+                    {
+                        (*p)--;
+                    }
+                }
+
+                // Remove the data
+
+                ret = mData.remove(dataloc);
             }
         }
-        return false;
+        return ret;
     }
 
     /**
@@ -887,6 +910,33 @@ public:
     {
         return mData.getSupportImpl();
     }
+
+    void dbgDump()
+    {
+#ifdef _DEBUG
+        dbglog("PropArray %p\n", this);
+        dbglog("Index(%p): length=%d\n", &mIndex, mIndex.length());
+        for (int i = 0; i < mIndex.length(); i++)
+        {
+            DataElem* dat = indexGet(i);
+            if (dat == NULL)
+            {
+                dbglog("   %d -> %d NULL\n", i, *(mIndex.get(i)));
+            }
+            else
+            {
+                dbglog("   %d -> %d [%p %s]\n", i, *(mIndex.get(i)), &dat->value, dat->key.get());
+            }
+        }
+
+        dbglog("Data(%p): length=%d\n", &mData, mData.length());
+        for (int i = 0; i < mData.length(); i++)
+        {
+            dbglog("  %d ->  %p\n", i, (uchar*)(mData.get(i)) + sizeof(PropKeyStr));
+        }
+#endif
+    }
+
 /** \endcond Internal */
 
 private:
@@ -959,6 +1009,7 @@ private:
         }
         return NULL;
     }
+
 };
 
 
@@ -995,7 +1046,7 @@ public:
     inline bool remove(const char* keyelem)
     {
         std::string s(keyelem);
-        return ObjArray<std::string>::remove(&s);
+        return ObjArray<std::string>::removeKey(&s);
     }
     /**
      * Finds a string in the array
