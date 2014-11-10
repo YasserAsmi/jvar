@@ -104,6 +104,15 @@ public:
     }
 
     /**
+     * Constructs a boolean object
+     */
+    inline Variant(bool b)
+    {
+      mData.type = V_BOOL;
+      mData.boolData = b;
+    }
+
+    /**
      * Constructs an string object using a std::string
      */
     inline Variant(std::string s)
