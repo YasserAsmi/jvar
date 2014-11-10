@@ -568,6 +568,16 @@ public:
     const Variant& operator[](const char* key) const;
 
     /**
+     * Returns a reference to the variant inside an object or a fuction using key
+     */
+    Variant& operator[](const std::string key);
+
+    /**
+     * Returns a const reference to the variant inside an object or a fuction using key
+     */
+    const Variant& operator[](const std::string key) const;
+
+    /**
      * Returns a refernece to a variant by parsing properties and indexes using a path
      * syntax (ex: "obj.propA.2.name")
      *
