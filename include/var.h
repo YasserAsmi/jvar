@@ -461,26 +461,49 @@ public:
      */
     const char* typeName() const;
 
+    /**
+     * Returns true if the stored object is null.
+     */
     inline bool isNull() const
     {
         return (mData.type == V_NULL);
     }
+
+    /**
+     * Returns true if the stored object is empty.
+     */
     inline bool isEmpty() const
     {
         return (mData.type == V_EMPTY);
     }
+
+    /**
+     * Returns true if the stored object is a JSON object.
+     */
     inline bool isObject() const
     {
         return (mData.type == V_OBJECT);
     }
+
+    /**
+     * Returns true if the stored object is a JSON array.
+     */
     inline bool isArray() const
     {
         return (mData.type == V_ARRAY);
     }
+
+    /**
+     * Returns true if the stored object is a pointer.
+     */
     inline bool isPointer() const
     {
         return (mData.type == V_POINTER);
     }
+
+    /**
+     * Returns true if the stored object is a double set to NaN.
+     */
     inline bool isNaN()
     {
         if (mData.type == V_DOUBLE)
@@ -648,10 +671,30 @@ public:
      * @return         Success
      */
     bool addEnv(const char* varname, const Variant& value = vEmpty);
+
+    /**
+     * Executes the function object with no parameters.
+     */
     Variant operator() ();
+
+    /**
+     * Executes the function object with one parameter.
+     */
     Variant operator() (const Variant& value1);
+
+    /**
+     * Executes the function object with two parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2);
+
+    /**
+     * Executes the function object with three parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2, const Variant& value3);
+
+    /**
+     * Executes the function object with four parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2, const Variant& value3, const Variant& value4);
 
     /**
@@ -746,6 +789,9 @@ private:
 
 private:
 
+    /**
+     * Frees all memory related to the data inside the Variant (probably).
+     */
     bool deleteData();
     void copyFrom(const Variant* src);
 
