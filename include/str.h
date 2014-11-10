@@ -1,5 +1,9 @@
-// Copyright (c) 2014 Yasser Asmi
-// Released under the MIT License (http://opensource.org/licenses/MIT)
+/**
+ * @file include/str.h
+ * Declares methods and classes for use with strings.
+ * @copyright Copyright (c) 2014 Yasser Asmi; Released under the MIT
+ *            License (http://opensource.org/licenses/MIT)
+ */
 
 #ifndef _STR_H
 #define _STR_H
@@ -101,6 +105,10 @@ std::string makeUTF8(uint charcode);
  * @return            True if strings are equal, false otherwise
  */
 bool equal(const char* s1, const char* s2, bool ignorecase = false);
+
+/**
+ * Find \p c in \p s.
+ */
 inline bool strfind(const char* s, char c, int* pos = NULL)
 {
     const char* foundp = strchr(s, c);
@@ -226,15 +234,26 @@ template <int MAXFIXED>
 class FixedStr
 {
 public:
+    /**
+     * Construct an empty FixedStr.
+     */
     inline FixedStr()
     {
         mFixed[0] = '\0';
     }
+
+    /**
+     * Construct a FixedStr from another FixedStr.
+     */
     inline FixedStr(const FixedStr& src)
     {
         mFixed[0] = '\0';
         set(src.get());
     }
+
+    /**
+     * Construct a FixedStr from another FixedStr.
+     */
     inline FixedStr(FixedStr& src)
     {
         mFixed[0] = '\0';
@@ -250,12 +269,19 @@ public:
             }
         }
     }
+
+    /**
+     * Copy the data in \p src into this FixedStr.
+     */
     inline FixedStr& operator=(const FixedStr& src)
     {
         set(src.get());
         return *this;
     }
 
+    /**
+     * Set the string to the contents of \p val.
+     */
     void set(const char* val)
     {
         int len = strlen(val);
@@ -298,6 +324,11 @@ public:
         memcpy(dest, val, len + 1);
     }
 
+    /**
+     * Set the internal string pointer.
+     * Stores an external pointer and doesn't try to free it.
+     * Can only be called once.  Can call set() after this, however.
+     */
     void setExt(const char* val)
     {
         // Stores an external pointer and doesn't try to free it.
@@ -309,6 +340,9 @@ public:
         mDyn.size = 0;
     }
 
+    /**
+     * Get the internal string pointer.
+     */
     const char* get() const
     {
         if (isFixed())
@@ -321,6 +355,9 @@ public:
         }
     }
 
+    /**
+     * Empty this string.
+     */
     void clear()
     {
         if (mFixed[0] == '\1')
@@ -478,6 +515,9 @@ public:
      */
     void stripQuotes(bool allowsingle);
 
+    /**
+     * Capture everything up to \p delim into the current token.
+     */
     void captureDelim(const char* delim);
 
 private:
@@ -496,30 +536,55 @@ private:
     std::string mErrMsg;
 
 protected:
+    /**
+     * Check if \p c is a valid word character (alphanumeric, '_', or ''').
+     */
     inline bool charWord(char c)
     {
         return (isalnum(c) || (c == '_') || (c == '\''));
     }
+
+    /**
+     * Check if \p c is a punctuation character (i.e. in \ref PUNC_CHARS).
+     */
     inline bool charPunc(char c)
     {
         return (strchr(PUNC_CHARS, c) != NULL);
     }
+
+    /**
+     * Check if \p c is a bracket character (i.e. in \ref BRAC_CHARS).
+     */
     inline bool charBrac(char c)
     {
         return (strchr(BRAC_CHARS, c) != NULL);
     }
 
 private:
+    /**
+     * Parses the current token.
+     */
     void parseToken();
 
+    /**
+     * Append \p c onto the token.
+     */
     inline void append(char c)
     {
         mToken += c;
     }
+
+    /**
+     * Append \p s onto the token.
+     */
     inline void append(const std::string& s)
     {
         mToken += s;
     }
+
+    /**
+     * Replace the last character of the current token with \p c.
+     */
     inline void replaceLast(char c)
     {
         int l = mToken.length();
@@ -528,6 +593,10 @@ private:
             mToken[l - 1] = c;
         }
     }
+
+    /**
+     * Remove the last character of the current token.
+     */
     inline void eraseLast()
     {
         int l = mToken.length();
@@ -536,6 +605,10 @@ private:
             mToken.erase(l - 1, 1);
         }
     }
+
+    /**
+     * Detect the current state & return the "right" token type.
+     */
     inline TokenStateEnum detState(char c)
     {
         if (c == '"' || c == '\'')

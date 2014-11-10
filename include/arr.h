@@ -1,5 +1,9 @@
-// Copyright (c) 2014 Yasser Asmi
-// Released under the MIT License (http://opensource.org/licenses/MIT)
+/**
+ * @file include/arr.h
+ * Declares array types and helper methods.
+ * @copyright Copyright (c) 2014 Yasser Asmi; Released under the MIT
+ *            License (http://opensource.org/licenses/MIT)
+ */
 
 #ifndef _ARR_H
 #define _ARR_H
@@ -20,6 +24,10 @@ namespace jvar
 class BArray
 {
 public:
+
+    /**
+     * A comparison callback for sorting.
+     */
     typedef int (*Compare)(const void*, const void*);
 
     /**
@@ -59,11 +67,19 @@ public:
     {
         copyFrom(src, false, false);
     }
+
+    /**
+     * Copy \p src into this array.
+     */
     inline BArray& operator=(const BArray& src)
     {
         copyFrom((BArray&)src, false, false);
         return *this;
     }
+
+    /**
+     * Copy \p src into this array.
+     */
     inline BArray& operator=(const BArray* src)
     {
         copyFrom((BArray&)*src, false, false);
@@ -239,6 +255,10 @@ public:
     uint mFlags;
 
 public:
+
+    /**
+     * List of flags used in \ref mFlags.
+     */
     enum
     {
         /**
@@ -248,8 +268,27 @@ public:
     };
 
 protected:
+
+    /**
+     * Copy data from \ref src to this array.
+     * @param src The array to read from.
+     * @param alloconly Only allocate memory, don't copy anything.
+     * @param move Move elements, don't copy them.
+     */
     void copyFrom(BArray& src, bool alloconly, bool move);
+
+    /**
+     * Implements a binary search.
+     *
+     * @param findelem The element to find.
+     * @param[out] pos The position of the element.
+     * @return true if the element was found.
+     */
     bool binSearch(const void* findelem, int& pos);
+
+    /**
+     * Ensure that enough memory for the array is allocated.
+     */
     void ensureAlloc(int desiredlen);
 
 
@@ -320,8 +359,8 @@ public:
 
 
 /**
- * ObjArray is similar to stl::vector.  It maintains a contiguous chunk of memory as an dynamic
- * array of objects.  It takes care of calling constructors and desctructors.  It allows finding
+ * ObjArray is similar to std::vector.  It maintains a contiguous chunk of memory as an dynamic
+ * array of objects.  It takes care of calling constructors and destructors.  It allows finding
  * elements and inserting them in order using binary search.  It allows creating objects
  * directly on the array as well.
  */
@@ -329,18 +368,27 @@ template <class T>
 class ObjArray : public BArray
 {
 public:
+    /**
+     * Construct a blank ObjArray.
+     */
     inline ObjArray() :
         BArray(sizeof(T), NULL),
         mSupportImpl(NULL)
     {
     }
 
+    /**
+     * Construct a blank ObjArray with \p as the comparison operator.
+     */
     inline ObjArray(Compare comp) :
         BArray(sizeof(T), comp),
         mSupportImpl(NULL)
     {
     }
 
+    /**
+     * Construct an ObjArray and copy the data from \p src into it.
+     */
     inline ObjArray(const ObjArray& src) :
         BArray(sizeof(T), NULL),
         mSupportImpl(NULL)
@@ -348,6 +396,9 @@ public:
         copyFrom((ObjArray&)src);
     }
 
+    /**
+     * Construct an ObjArray and copy the data from \p src into it.
+     */
     inline ObjArray(ObjArray& src) :
         BArray(sizeof(T), NULL),
         mSupportImpl(NULL)
@@ -355,11 +406,18 @@ public:
         copyFrom(src);
     }
 
+    /**
+     * Copy the data from \p src into this array.
+     */
     inline ObjArray& operator=(const ObjArray& src)
     {
         copyFrom((ObjArray&)src);
         return *this;
     }
+
+    /**
+     * Copy the data from \p src into this array.
+     */
     inline ObjArray& operator=(const ObjArray* src)
     {
         copyFrom(*src);
@@ -1019,6 +1077,9 @@ private:
 class StrArray : public ObjArray<std::string>
 {
 public:
+    /**
+     * Construct an empty StrArray.
+     */
     StrArray() :
         ObjArray(StrArray::compare)
     {
@@ -1062,8 +1123,10 @@ public:
     }
 
 public:
-    static
-    int compare(const void* e1, const void* e2)
+    /**
+     * Compare \p e1 with \p e2 (by calling std::string.compare()).
+     */
+    static int compare(const void* e1, const void* e2)
     {
         const std::string* s1 = (std::string*)e1;
         const std::string* s2 = (std::string*)e2;
@@ -1079,10 +1142,13 @@ public:
 class KeywordArray
 {
 public:
+    /**
+     * A keyword-value pair.
+     */
     struct Entry
     {
-        const char* keyword;
-        uint value;
+        const char* keyword; ///< The keyword into the array.
+        uint value;          ///< The value of this item.
     };
 
     /**

@@ -1,5 +1,9 @@
-// Copyright (c) 2014 Yasser Asmi
-// Released under the MIT License (http://opensource.org/licenses/MIT)
+/**
+ * @file include/var.h
+ * Declares the Variant type.
+ * @copyright Copyright (c) 2014 Yasser Asmi; Released under the MIT
+ *            License (http://opensource.org/licenses/MIT)
+ */
 
 #ifndef _VAR_H
 #define _VAR_H
@@ -9,15 +13,29 @@
 #include "str.h"
 #include <math.h>
 
+/**
+ * The null Variant.
+ */
 #define VNULL Variant::vNull
+
+/**
+ * The empty Variant.
+ */
 #define VEMPTY Variant::vEmpty
 
+/**
+ * The JSON path deliminator.
+ */
 #define VAR_PATH_DELIM     "."
 
 namespace jvar
 {
 
 /** \cond INTERNAL */
+
+/**
+ * Implementation of a value for Variant.
+ */
 class VarSuppImpl : public InterfaceImpl
 {
 public:
@@ -34,8 +52,8 @@ public:
     }
 
 public:
-    FixedStr<24> mClassName;
-    void* mSupp;
+    FixedStr<24> mClassName; ///< Class name (unused?)
+    void* mSupp; ///< The actual data.
 };
 /** \endcond */
 
@@ -49,20 +67,26 @@ class VarFuncObj;
 class Variant
 {
 public:
+    /**
+     * Comparison callback
+     */
     typedef int (*Compare)(const Variant*, const Variant*);
 
+    /**
+     * The type of the Variant.
+     */
     enum Type
     {
-        V_EMPTY,
-        V_NULL,
-        V_INT,
-        V_BOOL,
-        V_DOUBLE,
-        V_STRING,
-        V_ARRAY,
-        V_OBJECT,
-        V_FUNCTION,
-        V_POINTER
+        V_EMPTY,  ///< The Variant is empty.
+        V_NULL,   ///< The Variant is null.
+        V_INT,    ///< The Variant is an integer.
+        V_BOOL,   ///< The Variant is a boolean.
+        V_DOUBLE, ///< The Variant is a double-precision floating point value.
+        V_STRING, ///< The Variant is a string.
+        V_ARRAY,  ///< The Variant is a JSON array.
+        V_OBJECT, ///< The Variant is a JSON object.
+        V_FUNCTION, ///< The Variant is a function.
+        V_POINTER ///< The Variant is a pointer.
     };
 
 public:
@@ -461,26 +485,49 @@ public:
      */
     const char* typeName() const;
 
+    /**
+     * Returns true if the stored object is null.
+     */
     inline bool isNull() const
     {
         return (mData.type == V_NULL);
     }
+
+    /**
+     * Returns true if the stored object is empty.
+     */
     inline bool isEmpty() const
     {
         return (mData.type == V_EMPTY);
     }
+
+    /**
+     * Returns true if the stored object is a JSON object.
+     */
     inline bool isObject() const
     {
         return (mData.type == V_OBJECT);
     }
+
+    /**
+     * Returns true if the stored object is a JSON array.
+     */
     inline bool isArray() const
     {
         return (mData.type == V_ARRAY);
     }
+
+    /**
+     * Returns true if the stored object is a pointer.
+     */
     inline bool isPointer() const
     {
         return (mData.type == V_POINTER);
     }
+
+    /**
+     * Returns true if the stored object is a double set to NaN.
+     */
     inline bool isNaN()
     {
         if (mData.type == V_DOUBLE)
@@ -648,10 +695,30 @@ public:
      * @return         Success
      */
     bool addEnv(const char* varname, const Variant& value = vEmpty);
+
+    /**
+     * Executes the function object with no parameters.
+     */
     Variant operator() ();
+
+    /**
+     * Executes the function object with one parameter.
+     */
     Variant operator() (const Variant& value1);
+
+    /**
+     * Executes the function object with two parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2);
+
+    /**
+     * Executes the function object with three parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2, const Variant& value3);
+
+    /**
+     * Executes the function object with four parameters.
+     */
     Variant operator() (const Variant& value1, const Variant& value2, const Variant& value3, const Variant& value4);
 
     /**
@@ -707,7 +774,14 @@ public:
     }
 
 /** \cond INTERNAL */
+    /**
+     * Set the data in the value implementation.
+     */
     void setSuppImplData(const char* name, void* supp);
+
+    /**
+     * Get the data from the value implementation.
+     */
     void getSuppImplData(const char** name, void** supp);
 /** \endcond */
 
@@ -746,24 +820,74 @@ private:
 
 private:
 
+    /**
+     * Frees all memory related to the data inside the Variant (probably).
+     */
     bool deleteData();
+
+    /**
+     * Copy the data from \p src into this Variant.
+     */
     void copyFrom(const Variant* src);
 
+    /**
+     * Assign a \ref longint to this Variant.
+     */
     void assignInt(longint src);
+
+    /**
+     * Assign a double to this Variant.
+     */
     void assignDbl(double src);
+
+    /**
+     * Assign a bool to this Variant.
+     */
     void assignBool(bool src);
+
+    /**
+     * Assign a C-style string to this Variant.
+     */
     void assignStr(const char* src);
+
+    /**
+     * Assign a C++ string to this Variant.
+     */
     void assignStr(const std::string& src);
 
+    /**
+     * Coerce the data in this Variant to a \ref longint.
+     */
     longint makeInt() const;
+
+    /**
+     * Coerce the data in this Variant to a double.
+     */
     double makeDbl() const;
+
+    /**
+     * Coerce the data in this Variant to a boolean by first converting it
+     * to a \ref longint.
+     */
     inline bool makeBool() const
     {
         return makeInt() == 0 ? false : true;
     }
+
+    /**
+     * Coerce the data in this Variant to a C++ string.
+     * @param[out] s the string to fill.
+     */
     void makeString(std::string& s, int level, bool json);
 
+    /**
+     * Escape special characters in \p s.
+     */
     void jsonifyStr(std::string& s);
+
+    /**
+     * Append a double quote (<code>"</quote>) to \p s if type is V_STRING.
+     */
     inline void appendQuote(std::string& s, Type type)
     {
         if (type == V_STRING)
@@ -771,6 +895,10 @@ private:
             s += '"';
         }
     }
+
+    /**
+     * JSON formatting helper (adds newlines and indentation).
+     */
     inline void appendNewline(std::string& s, int level, bool json)
     {
         if (json)
@@ -783,12 +911,22 @@ private:
     static const KeywordArray::Entry sTypeNames[];
 
 public:
+    /**
+     * The empty Variant.
+     */
     static Variant vEmpty;
+
+    /**
+     * The null Variant.
+     */
     static Variant vNull;
 
 public:
 /** \cond INTERNAL */
 
+    /**
+     * Construct a Variant of the given \p type.
+     */
     Variant(Type type)
     {
         mData.type = type;

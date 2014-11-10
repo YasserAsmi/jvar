@@ -1,5 +1,9 @@
-// Copyright (c) 2014 Yasser Asmi
-// Released under the MIT License (http://opensource.org/licenses/MIT)
+/**
+ * @file include/util.h
+ * Declares various utility preprocessor symbols, types, and classes.
+ * @copyright Copyright (c) 2014 Yasser Asmi; Released under the MIT
+ *            License (http://opensource.org/licenses/MIT)
+ */
 
 #ifndef _UTIL_H
 #define _UTIL_H
@@ -18,22 +22,40 @@
 #include <string>
 
 #ifndef NDEBUG
+    /**
+     * We are debugging
+     */
     #define _DEBUG
 
+    /**
+     * Log an info message
+     */
     #define dbglog(fmt, ...) \
         do { fprintf(stderr, fmt, ## __VA_ARGS__); } while (0)
 
+    /**
+     * Log an error message
+     */
     #define dbgerr(fmt, ...) \
         do { fprintf(stderr, "Error: %s(%d): " fmt, __FILE__, __LINE__, ## __VA_ARGS__); } while (0)
 
+    /**
+     * Debug trace if enabled
+     */
     #define dbgtrc(fmt, ...) \
         do { if (jvar::enable_dbgtrc) fprintf(stderr, "%s(%d): " fmt, __func__, __LINE__, ## __VA_ARGS__); } while (0)
 
+    /**
+     * Write a message with the function and file
+     */
     #define dbgfnc() \
         do { fprintf(stderr, "%s in %s(%d)\n", __PRETTY_FUNCTION__, __FILE__, __LINE__); } while (0)
 
 namespace jvar
 {
+    /**
+     * Hex dumper
+     */
     void dbghex(const char* label, const void* ptr, int len);
 }
 
@@ -52,24 +74,45 @@ namespace jvar
     #define dbghex(label, ptr, len)
 #endif
 
+/**
+ * Is the given \p flag set in \p value?
+ */
 #define isFlagSet(value, flag)         ( ((value) & (flag)) != 0 )
+
+/**
+ * Is the given \p flag not set in \p value?
+ */
 #define isFlagClear(value, flag)       ( ((value) & (flag)) == 0 )
+
+/**
+ * Set the \p flag into \p value.
+ */
 #define setFlag(value, flag)           { (value) |= (flag); }
+
+/**
+ * Clear the \p flag out of \p value.
+ */
 #define clearFlag(value, flag)         { (value) &= ~(flag); }
 
+/**
+ * Array length count
+ */
 #define countof(x)  ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
 
 namespace jvar
 {
 
-typedef unsigned char uchar;
-typedef short int shortint;
-typedef unsigned short int ushortint;
-typedef unsigned int uint;
-typedef long int longint;
-typedef unsigned long int ulongint;
+typedef unsigned char uchar; ///< Shorthand type definition
+typedef short int shortint; ///< Shorthand type definition
+typedef unsigned short int ushortint; ///< Shorthand type definition
+typedef unsigned int uint; ///< Shorthand type definition
+typedef long int longint; ///< Shorthand type definition
+typedef unsigned long int ulongint; ///< Shorthand type definition
 
+/**
+ * Enable debug trace (unused?)
+ */
 extern bool enable_dbgtrc;
 
 /**
@@ -166,13 +209,19 @@ private:
     size_t mSize;
 };
 
-
+/**
+ * The interface to an implementation.
+ */
 class InterfaceImpl
 {
 public:
     virtual ~InterfaceImpl()
     {
     }
+
+    /**
+     * Pure virtual factory method.
+     */
     virtual InterfaceImpl* newImpl() = 0;
 };
 
