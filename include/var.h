@@ -95,7 +95,7 @@ public:
     }
 
     /**
-     * Constructs an double object
+     * Constructs a double object
      */
     inline Variant(double d)
     {
@@ -113,7 +113,7 @@ public:
     }
 
     /**
-     * Constructs an string object using a std::string
+     * Constructs a string object using a std::string
      */
     inline Variant(std::string s)
     {
@@ -126,7 +126,7 @@ public:
     }
 
     /**
-     * Constructs an string object
+     * Constructs a string object
      */
     inline Variant(const char* s)
     {
@@ -148,7 +148,7 @@ public:
     }
 
     /**
-     * Destructor deletes all data in the object
+     * Destructor - deletes all data in the object
      */
     inline ~Variant()
     {
@@ -156,7 +156,7 @@ public:
     }
 
     /**
-     * Assignms a variant by copying it
+     * Assigns a variant by copying it
      */
     inline Variant& operator=(const Variant& src)
     {
@@ -165,7 +165,7 @@ public:
     }
 
     /**
-     * Assignms a variant by copying it
+     * Assigns a variant by copying it
      */
     inline Variant& operator=(const Variant* src)
     {
@@ -174,7 +174,7 @@ public:
     }
 
     /**
-     * Assignms a string (changes type if needed)
+     * Assigns a string (changes type if needed)
      */
     inline Variant& operator=(const char* src)
     {
@@ -183,7 +183,7 @@ public:
     }
 
     /**
-     * Assignms a string (changes type if needed)
+     * Assigns a string (changes type if needed)
      */
     inline Variant& operator=(const std::string& src)
     {
@@ -192,7 +192,7 @@ public:
     }
 
     /**
-     * Assignms a bool (changes type if needed)
+     * Assigns a bool (changes type if needed)
      */
     inline Variant& operator=(bool src)
     {
@@ -201,7 +201,7 @@ public:
     }
 
     /**
-     * Assignms a longint (changes type if needed)
+     * Assigns a longint (changes type if needed)
      */
     inline Variant& operator=(longint src)
     {
@@ -210,7 +210,7 @@ public:
     }
 
     /**
-     * Assignms a int (changes type if needed)
+     * Assigns a int (changes type if needed)
      */
     inline Variant& operator=(int src)
     {
@@ -219,7 +219,7 @@ public:
     }
 
     /**
-     * Assignms a double (changes type if needed)
+     * Assigns a double (changes type if needed)
      */
     inline Variant& operator=(double src)
     {
@@ -228,7 +228,7 @@ public:
     }
 
     /**
-     * Assignms a float (changes type if needed)
+     * Assigns a float (changes type if needed)
      */
     inline Variant& operator=(float src)
     {
@@ -238,11 +238,11 @@ public:
 
     /**
      * @page AddingVariants Adding Variants
-     * When adding two variants together using the + operator, the result depents on the types. There
-     * are two cases: types are same, and types are different.  If they are same and if they are ints,
-     * result is an int.  If both are double, result is a double.  If both strings, the result is a
-     * concatnated string.  If the types are different, the variants are first convered into strings
-     * and concatnated.
+     * When adding two variants together using the + operator, the result depends on the types. There
+     * are two cases: when the types are same, and when the types are different.  If they are same and
+     * if they are ints, the result is an int.  If both are double, the result is a double.  If both
+     * are strings, the result is a concatenated string.  If the types are different, the variants are
+     * first converted into strings and then concatenated.
      */
 
     /**
