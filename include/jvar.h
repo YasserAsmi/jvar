@@ -1,5 +1,9 @@
-// Copyright (c) 2014 Yasser Asmi
-// Released under the MIT License (http://opensource.org/licenses/MIT)
+/**
+ * @file include/jvar.h
+ * Pulls in the jvar library.
+ * @copyright Copyright (c) 2014 Yasser Asmi; Released under the MIT
+ *            License (http://opensource.org/licenses/MIT)
+ */
 
 #ifndef _JVAR_H
 #define _JVAR_H

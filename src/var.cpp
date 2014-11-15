@@ -598,6 +598,16 @@ const Variant& Variant::operator[](const char* key) const
     return vNull;
 }
 
+Variant& Variant::operator[](const std::string key)
+{
+  return (*this)[key.c_str()];
+}
+
+const Variant& Variant::operator[](const std::string key) const
+{
+  return (*this)[key.c_str()];
+}
+
 Variant& Variant::path(const char* pathkey)
 {
     assert(pathkey);
