@@ -464,6 +464,15 @@ public:
     bool parseJson(const char* jsontxt);
 
     /**
+     * Parses json text and loads the data structure into the variant
+     *
+     * @param  jsontxt Json text string
+     *
+     * @return         Success
+     */
+    inline bool parseJson(std::string jsontxt) { return parseJson(jsontxt.c_str()); }
+
+    /**
      * Formats a new string using printf style formatting and assigns it to the variant
      */
     void format(const char* fmt, ...);
