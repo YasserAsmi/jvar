@@ -588,7 +588,7 @@ public:
     {
         // Bounds check.
 
-        if ((uint)pos >= length())
+        if (pos >= length())
         {
             return NULL;
         }
