@@ -12,6 +12,7 @@
 #include "arr.h"
 #include "str.h"
 #include <math.h>
+#include <initializer_list>
 
 /**
  * The null Variant.
@@ -464,6 +465,15 @@ public:
     bool parseJson(const char* jsontxt);
 
     /**
+     * Parses json text and loads the data structure into the variant
+     *
+     * @param  jsontxt Json text string
+     *
+     * @return         Success
+     */
+    inline bool parseJson(std::string jsontxt) { return parseJson(jsontxt.c_str()); }
+
+    /**
      * Formats a new string using printf style formatting and assigns it to the variant
      */
     void format(const char* fmt, ...);
@@ -707,6 +717,18 @@ public:
     bool addEnv(const char* varname, const Variant& value = vEmpty);
 
     /**
+     * Executes the function object with any number of parameters.
+     *
+     * This method is called with a brace-enclosed parameter list - see
+     * \ref func.cpp for an example.
+     *
+     * The overloads of operator() taking zero to four parameters call this
+     * method to do real work and return the result. They can therefore
+     * be used as shorthand if only four arguments are needed.
+     */
+    Variant operator() (std::initializer_list<const jvar::Variant>&& values);
+
+    /**
      * Executes the function object with no parameters.
      */
     Variant operator() ();
@@ -945,7 +967,7 @@ public:
     void internalAdd(const Variant& lhs, const Variant& rhs);
     void internalSetPtr(const Variant* v);
 
-/** \endcond */
+    /** \endcond */
 };
 
 /** \cond INTERNAL */

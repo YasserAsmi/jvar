@@ -4,6 +4,8 @@
 #include "var.h"
 #include "json.h"
 
+#include <initializer_list>
+
 namespace jvar
 {
 
@@ -732,99 +734,48 @@ void Variant::createFunction(Variant (*func)(Variant& env, Variant& arg))
     }
 }
 
+Variant Variant::operator() (std::initializer_list<const jvar::Variant>&& values)
+{
+    if (mData.type != V_FUNCTION) return VNULL;
+
+    Variant arg;
+    Variant* p;
+
+    arg.createArray();
+
+    for(const auto& value : values)
+    {
+      p = arg.append(value);
+    }
+
+    return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+}
+
 Variant Variant::operator() ()
 {
-    if (mData.type == V_FUNCTION)
-    {
-        Variant arg;
-
-        arg.createArray();
-
-        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
-    }
-    return VNULL;
+    return (*this)({});
 }
 
 Variant Variant::operator() (const Variant& value1)
 {
-    if (mData.type == V_FUNCTION)
-    {
-        Variant arg;
-        Variant* p;
-
-        arg.createArray();
-
-        p = arg.append();
-        p->internalSetPtr(&value1);
-
-        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
-    }
-    return VNULL;
+    return (*this)({value1});
 }
 
 Variant Variant::operator() (const Variant& value1, const Variant& value2)
 {
-    if (mData.type == V_FUNCTION)
-    {
-        Variant arg;
-        Variant* p;
-
-        arg.createArray();
-
-        p = arg.append();
-        p->internalSetPtr(&value1);
-        p = arg.append();
-        p->internalSetPtr(&value2);
-
-        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
-    }
-    return VNULL;
+    return (*this)({value1, value2});
 }
 
 Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3)
 {
-    if (mData.type == V_FUNCTION)
-    {
-        Variant arg;
-        Variant* p;
-
-        arg.createArray();
-
-        p = arg.append();
-        p->internalSetPtr(&value1);
-        p = arg.append();
-        p->internalSetPtr(&value2);
-        p = arg.append();
-        p->internalSetPtr(&value3);
-
-        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
-    }
-    return VNULL;
+    return (*this)({value1, value2, value3});
 }
 
 
 Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3,
     const Variant& value4)
 {
-    if (mData.type == V_FUNCTION)
-    {
-        Variant arg;
-        Variant* p;
-
-        arg.createArray();
-
-        p = arg.append();
-        p->internalSetPtr(&value1);
-        p = arg.append();
-        p->internalSetPtr(&value2);
-        p = arg.append();
-        p->internalSetPtr(&value3);
-        p = arg.append();
-        p->internalSetPtr(&value4);
-
-        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
-    }
-    return VNULL;
+    return (*this)({value1, value2, value3, value4});
 }
 
 bool Variant::addEnv(const char* varname, const Variant& value /* = vEmpty */)
