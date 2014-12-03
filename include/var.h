@@ -12,6 +12,7 @@
 #include "arr.h"
 #include "str.h"
 #include <math.h>
+#include <initializer_list>
 
 /**
  * The null Variant.
@@ -716,6 +717,11 @@ public:
     bool addEnv(const char* varname, const Variant& value = vEmpty);
 
     /**
+     * Executes the function object with any number of parameters.
+     */
+    Variant operator() (std::initializer_list<const jvar::Variant>&& values);
+
+    /**
      * Executes the function object with no parameters.
      */
     Variant operator() ();
@@ -954,7 +960,7 @@ public:
     void internalAdd(const Variant& lhs, const Variant& rhs);
     void internalSetPtr(const Variant* v);
 
-/** \endcond */
+    /** \endcond */
 };
 
 /** \cond INTERNAL */
