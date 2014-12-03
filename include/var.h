@@ -718,6 +718,13 @@ public:
 
     /**
      * Executes the function object with any number of parameters.
+     *
+     * This method is called with a brace-enclosed parameter list - see
+     * \ref func.cpp for an example.
+     *
+     * The overloads of operator() taking zero to four parameters call this
+     * method to do real work and return the result. They can therefore
+     * be used as shorthand if only four arguments are needed.
      */
     Variant operator() (std::initializer_list<const jvar::Variant>&& values);
 
