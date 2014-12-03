@@ -39,7 +39,9 @@ void testJsonSuite()
     DIR* dir;
     struct dirent* fil;
 
-    dir = opendir("./jsontest/");
+    printf("\nRunning test on json files in ../example/jsontest directory....\n");
+
+    dir = opendir("../example/jsontest/");
     if (dir == NULL)
     {
         printf("Error: failed to open jsontest directory\n");
@@ -50,9 +52,11 @@ void testJsonSuite()
     {
         if (!equal(fil->d_name, ".") && !equal(fil->d_name, ".."))
         {
-            std::string fn(fil->d_name);
+            std::string fn("../example/jsontest/");
 
-            printf("\nFilename: %s should %s\n", fn.c_str(), fn.find("pass") != std::string::npos ? "pass" : "fail");
+            fn += fil->d_name;
+
+            printf("\nFilename: '%s' should %s\n", fn.c_str(), fn.find("pass") != std::string::npos ? "pass" : "fail");
 
             Buffer jsontxt;
             jsontxt.readFile(fn.c_str(), true);
@@ -61,12 +65,6 @@ void testJsonSuite()
             if (v.parseJson((const char*)jsontxt.cptr()))
             {
                 printf("PASS!!\n");
-
-                // std::string outfn = "out/" + fn;
-                // ofstream f;
-                // f.open(outfn.c_str());
-                // f << v.toJsonString();
-                // f.close();
             }
             else
             {

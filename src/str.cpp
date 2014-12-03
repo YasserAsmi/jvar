@@ -186,7 +186,7 @@ std::string makeUTF8(uint charcode)
         const int otherbits = 6;
         int firstval = 0xC0;
         int t = 0;
-        while (charcode >= (1 << firstbits))
+        while ((int)charcode >= (1 << firstbits))
         {
             t = 0x80 | (charcode & ((1 << otherbits)-1));
             charcode >>= otherbits;
@@ -409,7 +409,7 @@ void Parser::parseToken()
 
                     case PuncTok:
                     {
-                        if (charPunc(c))
+                        if ((lastc != ':') && charPunc(c))
                         {
                             append(c);
                         }
