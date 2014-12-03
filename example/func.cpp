@@ -3,6 +3,8 @@
 
 #include "jvar.h"
 
+#include <iostream>
+
 using namespace jvar;
 
 /**
@@ -34,6 +36,17 @@ Variant makeConverter(Variant tounit, Variant factor, Variant offset = VNULL)
     return funcobj;
 }
 
+// This function takes as many parameters as you want to give it - it is
+// variadic, like printf, but is semi-type-safe.
+Variant print(Variant& env, Variant& arg)
+{
+    for(size_t i = 0; i < arg.length(); ++i)
+    {
+        std::cout << arg[i].toString() << " ";
+    }
+}
+
+
 int main(int argc, char** argv)
 {
     Variant res;
@@ -59,4 +72,11 @@ int main(int argc, char** argv)
     // milestokm(10) = 16.09 km
     // poundsToKg(2.5) = 1.14 kg
     // farenheitToCelsius(98l) = 36.67 degrees-c
+
+    Variant multi;
+    multi.createFunction(print);
+    multi({"test", 2.0, 3, 4, "five", "six"});
+
+    // Printed:
+    // test 2.0 3 4 five six
 }
