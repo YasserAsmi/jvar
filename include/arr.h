@@ -1081,7 +1081,7 @@ public:
      * Construct an empty StrArray.
      */
     StrArray() :
-        ObjArray(StrArray::compare)
+        ObjArray<std::string>(StrArray::compare)
     {
     }
 
