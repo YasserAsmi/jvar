@@ -68,7 +68,7 @@ void Buffer::alloc(size_t size)
     mMemory = ::malloc(size);
     if (mMemory == NULL)
     {
-        dbgerr("failed to allocate %lu bytes\n", size);
+        dbgerr("failed to allocate %lu bytes\n", static_cast<long unsigned int>(size));
         return;
     }
     mSize = size;
@@ -84,7 +84,7 @@ void Buffer::reAlloc(size_t size)
     void* p = ::realloc(mMemory, size);
     if (p == NULL)
     {
-        dbgerr("failed to allocate %lu bytes\n", size);
+        dbgerr("failed to allocate %lu bytes\n", static_cast<long unsigned int>(size));
         return;
     }
 
