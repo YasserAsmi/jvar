@@ -2,7 +2,11 @@
 // Released under the MIT License (http://opensource.org/licenses/MIT)
 
 #include "jvar.h"
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
 #include <dirent.h>
+#endif
 
 using namespace jvar;
 
@@ -34,6 +38,50 @@ void showSimple()
     }
 }
 
+#ifdef _MSC_VER
+void testJsonSuite()
+{
+    const char* datadir = "..\\..\\example\\jsontest\\";
+    printf("\nRunning test on json files in %s....\n", datadir);
+
+    WIN32_FIND_DATA ffd;
+    std::string dir(datadir);
+    dir += "*";
+    HANDLE hfind = FindFirstFile(dir.c_str(), &ffd);
+    if (hfind == INVALID_HANDLE_VALUE) 
+    {
+        printf("Error: failed to open jsontest directory, err=%d\n", GetLastError());
+        return;
+    } 
+   
+    do
+    {
+        if ((ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        {
+            std::string fn(datadir);
+            fn += ffd.cFileName;
+
+            printf("\nFilename: '%s' should %s\n", fn.c_str(), fn.find("pass") != std::string::npos ? "pass" : "fail");
+
+            Buffer jsontxt;
+            jsontxt.readFile(fn.c_str(), true);
+
+            Variant v;
+            if (v.parseJson((const char*)jsontxt.cptr()))
+            {
+                printf("PASS!!\n");
+            }
+            else
+            {
+                printf("FAIL\n");
+            }
+        }
+   }
+   while (FindNextFile(hfind, &ffd) != 0);
+   FindClose(hfind);
+}
+
+#else
 void testJsonSuite()
 {
     DIR* dir;
@@ -73,6 +121,9 @@ void testJsonSuite()
         }
     }
 }
+
+#endif
+
 
 int main(int argc, char** argv)
 {

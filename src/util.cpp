@@ -46,6 +46,7 @@ void dbghex(const char* label, const void* ptr, int len)
 }
 #endif
 
+#ifndef _MSC_VER
 ulongint getTickCount()
 {
     struct timespec ts;
@@ -57,6 +58,7 @@ ulongint getTickCount()
 
     return (ts.tv_sec * 1000) + ts.tv_nsec / 1000000L;
 }
+#endif
 
 // Buffer
 

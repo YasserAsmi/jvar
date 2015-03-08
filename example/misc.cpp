@@ -4,6 +4,11 @@
 #include "jvar.h"
 #include <vector>
 
+#ifdef _MSC_VER
+#include <Windows.h>
+#define getTickCount  GetTickCount
+#endif
+
 using namespace std;
 using namespace jvar;
 

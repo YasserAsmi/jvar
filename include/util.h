@@ -8,6 +8,14 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+
+#pragma warning(disable: 4521)
+#pragma warning(disable: 4018)
+
+#endif
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -15,7 +23,6 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <memory.h>
 #include <errno.h>
 
@@ -25,8 +32,9 @@
     /**
      * We are debugging
      */
+#ifndef _DEBUG    
     #define _DEBUG
-
+#endif
     /**
      * Log an info message
      */
@@ -98,6 +106,27 @@ namespace jvar
  * Array length count
  */
 #define countof(x)  ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
+/*
+ * Windows specific
+*/
+
+#ifdef _MSC_VER
+
+    #define snprintf _snprintf 
+    #define vsnprintf _vsnprintf 
+    #define strcasecmp _stricmp 
+    #define strncasecmp _strnicmp 
+
+#ifndef va_copy
+    #define va_copy(dest, src) ((dest) = (src))
+#endif
+
+inline bool isnan(double x) 
+{ 
+    return x != x; 
+}
+#endif
 
 
 namespace jvar
