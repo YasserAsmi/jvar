@@ -40,7 +40,7 @@ namespace jvar
  *
  * @return        Formatted string
  */
-std::string format(const char* fmt, ...);
+std::string formatr(const char* fmt, ...);
 
 /**
  * Formats a string using printf style parameters
@@ -76,6 +76,20 @@ void upperCase(std::string& str);
 void lowerCase(std::string& str);
 
 /**
+ * Trims whitespace from the left of the string
+ *
+ * @param str String to trim
+ */
+void trimLeft(std::string& str);
+
+/**
+ * Trims whitespace from the right of the string
+ *
+ * @param str String to trim
+ */
+void trimRight(std::string& str);
+
+/**
  * Reads characters from utf8 string and builds a unicode character
  *
  * @param  s       String containing utf8 chars
@@ -96,18 +110,32 @@ uint makeUnicode(const char* s, int maxlen, int* lenused = NULL);
 std::string makeUTF8(uint charcode);
 
 /**
- * Compares strings to see if they are equal
+ * Compares strings to see if they are equal (not case-insensitive)
  *
  * @param  s1         String 1
  * @param  s2         String 2
- * @param  ignorecase True ignores case, otherwise case is considered
  *
  * @return            True if strings are equal, false otherwise
  */
-bool equal(const char* s1, const char* s2, bool ignorecase = false);
+bool equal(const char* s1, const char* s2);
+/**
+ * Compares strings to see if they are equal (case-insensitive)
+ *
+ * @param  s1         String 1
+ * @param  s2         String 2
+ *
+ * @return            True if strings are equal, false otherwise
+ */
+bool equalCI(const char* s1, const char* s2);
 
 /**
- * Find \p c in \p s.
+ * Finds the index of a char in a string
+ *
+ * @param  s   String to search in
+ * @param  c   Char to search
+ * @param  pos If not null and match found, returns the position of the match
+ *
+ * @return     True if found, false otherwise
  */
 inline bool strfind(const char* s, char c, int* pos = NULL)
 {
@@ -206,24 +234,48 @@ double str2dbl(const std::string& str, bool* valid  = NULL);
  *
  * @return       Parent path
  */
-inline std::string pathParent(const std::string p, const char* delim)
-{
-    return p.substr(0, p.find_last_of(delim));
-}
+std::string pathParent(const std::string p, const char* delim = NULL);
 
 /**
- * Given a string separated by path delimeters, returns the child.   Returns
+ * Given a string separated by path delimiters, returns the child.  Returns
  * empty string if the string is same as the delimiter.
  *
  * @param  p     Path (ex: ~/dir1/dir2/file)
- * @param  delim Delimter (ex: /)
+ * @param  delim Delimiter (ex: /), if NULL, file system separator is used
  *
  * @return       Child path
  */
-inline std::string pathChild(const std::string p, const char* delim)
-{
-    return p.substr(p.find_last_of(delim) + 1);
-}
+std::string pathChild(const std::string p, const char* delim = NULL);
+
+/**
+ * Returns the executable file system path for this process
+ *
+ * @param replfn    If not NULL, the executable name is removed and this
+ *                  relative path is appended.
+ *
+ * @return Path
+ */
+std::string pathThisProc(const char* replfn = NULL);
+
+/**
+ * Calculates hash value for the string
+ *
+ * @param  str  Pointer to string
+ * @param  len  Length of the string
+ *
+ * @return      Hash value
+ */
+uint strHashSedgewick(const char* str, size_t len);
+
+/**
+ * Replaces all instances of 'match' with 'with' for 'str'
+ *
+ * @param str   [description]
+ * @param match [description]
+ * @param with  [description]
+ */
+void replaceAll(std::string& str, const std::string& match, const std::string& with);
+
 
 /**
  * FixedStr class template is used to declare a string object which has enough
@@ -405,11 +457,169 @@ private:
    }
 };
 
+
+class StrBld
+{
+public:
+    StrBld(const char* str) :
+        mLen(0)
+    {
+        int l = strlen(str);
+        mBuf.alloc(l + 1);
+        append(str, l);
+    }
+    StrBld() :
+        mLen(0)
+    {
+        mBuf.alloc(64);
+    }
+    StrBld(size_t minsize) :
+        mLen(0)
+    {
+        mBuf.alloc(minsize);
+    }
+    StrBld(const StrBld& src) :
+        mBuf(src.mBuf),
+        mLen(src.mLen)
+    {
+    }
+    StrBld(StrBld& src) :
+        mBuf(src.mBuf),
+        mLen(src.mLen)
+    {
+    }
+
+    inline void append(char c)
+    {
+        char* buf = ensureAlloc(mLen + 2);
+        buf[mLen++] = c;
+    }
+    inline void append(const char* s, int l)
+    {
+        char* buf = ensureAlloc(mLen + l + 1);
+        memcpy(buf + mLen, s, l);
+        mLen += l;
+    }
+    inline void append(const char* s)
+    {
+        append(s, strlen(s));
+    }
+    inline void append(const std::string& s)
+    {
+        append(s.c_str(), s.length());
+    }
+    inline void append(StrBld& sb)
+    {
+        append(sb.c_str(), sb.length());
+    }
+    inline void replaceLast(char c)
+    {
+        char* buf = ensureAlloc(mLen + 1);
+        if (mLen > 0)
+        {
+            buf[mLen - 1] = c;
+        }
+    }
+    inline void eraseLast()
+    {
+        if (mLen > 0)
+        {
+            mLen--;
+        }
+    }
+    void clear()
+    {
+        mLen = 0;
+    }
+    const char* c_str()
+    {
+        char* buf = (char*)mBuf.ptr();
+        // Lazy null termination
+        buf[mLen] = '\0';
+        return buf;
+    }
+    std::string toString()
+    {
+        char* buf = (char*)mBuf.ptr();
+        return std::string(buf, mLen);
+    }
+    inline uint length()
+    {
+        return mLen;
+    }
+    inline bool empty()
+    {
+        return mLen == 0;
+    }
+
+    inline int compare(const char* s)
+    {
+        return strcmp(c_str(), s);
+    }
+    inline bool equals(const char* s)
+    {
+        return compare(s) == 0;
+    }
+    inline bool equals(char c)
+    {
+        return (mLen == 1 && *(char*)mBuf.ptr() == c);
+    }
+
+    inline char operator[](uint i)
+    {
+        char* buf = (char*)mBuf.ptr();
+        return (i < mLen) ? buf[i] : '\0';
+    }
+
+    inline bool existCh(char c)
+    {
+        return (strchr(c_str(), c) != NULL);
+    }
+
+    bool appendVFmt(const char* fmt, va_list varg);
+    bool appendFmt(const char* fmt, ...);
+
+    /**
+     * Strip quotes from the current token string if found
+     *
+     * @param allowsingle If true, also allows stripping single quotes
+     */
+    void stripQuotes(bool allowsingle);
+
+    void moveFrom(StrBld& sb)
+    {
+        mBuf.moveFrom(sb.mBuf);
+        mLen = sb.mLen;
+        //sb.mBuf.alloc(64);
+        sb.mLen = 0;
+    }
+
+    inline void copyTo(std::string& s)
+    {
+        s.assign((char*)mBuf.ptr(), mLen);
+    }
+
+private:
+    inline char* ensureAlloc(size_t neededsize)
+    {
+        if (neededsize > mBuf.size())
+        {
+            mBuf.dblOr(neededsize);
+        }
+        return (char*)mBuf.ptr();
+    }
+
+private:
+    jvar::Buffer mBuf;
+    uint mLen;
+};
+
+
 /**
  * Parser class implements a text parser which follows simple rules to build tokens.
  *    .Sequence of letters, digits, and '_' is a token
  *    .Opening or a closing bracket is a token
- *    .Sequence of punctuation symbols like * - ; = , etc is a token
+ *    .Sequence of punctuation symbols like * - ; = , etc is a token (can force single punctuation per token)
  *    .Sequence of characters beginning and ending with a quote is a token (escape chars are consistent with JSON)
  *    .Whitespace is ignored except in quotes
  */
@@ -458,17 +668,15 @@ public:
      *
      * @return Pointer to current token
      */
+
+    // TODO: Rename to tokenStr
     inline const char* c_str()
     {
-        return token().c_str();
+        parseToken();
+        return mToken.c_str();
     }
 
-    /**
-     * Returns the current token
-     *
-     * @return Reference to current token
-     */
-    inline const std::string& token()
+    inline StrBld& token()
     {
         parseToken();
         return mToken;
@@ -483,7 +691,13 @@ public:
      */
     inline bool tokenEquals(const char* val)
     {
-        return token().compare(val) == 0;
+        parseToken();
+        return mToken.equals(val);
+    }
+    inline bool tokenEquals(char c)
+    {
+        parseToken();
+        return mToken.equals(c);
     }
 
     /**
@@ -493,13 +707,38 @@ public:
     {
         mTokParsed = false;
     }
+    inline void advance(const char* match)
+    {
+        if (mErr)
+        {
+            return;
+        }
+        if (tokenEquals(match))
+        {
+            advance();
+        }
+        else
+        {
+            expectErr(0, match);
+        }
+    }
 
-    /**
-     * Advances if a matching token is found
-     *
-     * @param match String to match
-     */
-    void advance(const char* match);
+    inline void advance(char matchc)
+    {
+        if (mErr)
+        {
+            return;
+        }
+
+        if (tokenEquals(matchc))
+        {
+            advance();
+        }
+        else
+        {
+            expectErr(matchc, NULL);
+        }
+    }
 
     /**
      * Sets an error message and signal failure
@@ -508,17 +747,62 @@ public:
      */
     void setError(const char* msg);
 
-    /**
-     * Strip quotes from the current token string if found
-     *
-     * @param allowsingle If true, also allows stripping single quotes
-     */
-    void stripQuotes(bool allowsingle);
+	/** Enables or disables single punctuation mode.  In single punc mode, a token
+      * consists of only a single char.  When this mode is disabled (default), multiple
+      * adjacent chars are combined into a single token.
+      */
+    inline void setSinglePunc(bool enable)
+    {
+        mSinglePunc = enable;
+    }
 
     /**
      * Capture everything up to \p delim into the current token.
      */
     void captureDelim(const char* delim);
+
+    inline void ensureTok()
+    {
+        parseToken();
+    }
+    std::string tokFullStr()
+    {
+        std::string s;
+        int l = mTokEndPos - mTokStartPos;
+        if (mTokStartPos + l <= mTxtLen)
+        {
+            s = std::string(mTxt + mTokStartPos, l);
+        }
+        return s;
+    }
+    inline int tokEndPos()
+    {
+        return mTokEndPos;
+    }
+    inline int tokStartPos()
+    {
+        return mTokStartPos;
+    }
+    inline bool tokIsWord()
+    {
+        return tokType() == WordTok;
+    }
+    inline bool tokIsPunc()
+    {
+        return tokType() == PuncTok;
+    }
+    inline bool tokIsQuot()
+    {
+        return tokType() == QuoteTok;
+    }
+    inline bool tokIsBrac()
+    {
+        return tokType() == BracTok;
+    }
+    inline bool tokIs(const char* val)
+    {
+        return tokenEquals(val);
+    }
 
 private:
     enum TokenStateEnum
@@ -527,13 +811,16 @@ private:
     };
 
     const char* mTxt;
-    std::string mToken;
+    StrBld mToken;
     bool mTokParsed;
     int mPos;
     int mLineNum;
     bool mErr;
     int mTxtLen;
     std::string mErrMsg;
+    int mTokStartPos;
+    int mTokEndPos;
+    bool mSinglePunc;
 
 protected:
     /**
@@ -561,54 +848,39 @@ protected:
     }
 
 private:
-    /**
-     * Parses the current token.
-     */
-    void parseToken();
+    inline void parseToken()
+    {
+        if (mErr)
+        {
+            mToken.clear();
+            return;
+        }
+        if (mTokParsed)
+        {
+            return;
+        }
+        internalParse();
+    }
 
-    /**
-     * Append \p c onto the token.
-     */
+    void internalParse();
+    void expectErr(char c, const char* str);
+
     inline void append(char c)
     {
-        mToken += c;
+        mToken.append(c);
     }
-
-    /**
-     * Append \p s onto the token.
-     */
     inline void append(const std::string& s)
     {
-        mToken += s;
+        mToken.append(s);
     }
-
-    /**
-     * Replace the last character of the current token with \p c.
-     */
     inline void replaceLast(char c)
     {
-        int l = mToken.length();
-        if (l > 0)
-        {
-            mToken[l - 1] = c;
-        }
+        mToken.replaceLast(c);
     }
-
-    /**
-     * Remove the last character of the current token.
-     */
     inline void eraseLast()
     {
-        int l = mToken.length();
-        if (l >= 1)
-        {
-            mToken.erase(l - 1, 1);
-        }
+        mToken.eraseLast();
     }
-
-    /**
-     * Detect the current state & return the "right" token type.
-     */
     inline TokenStateEnum detState(char c)
     {
         if (c == '"' || c == '\'')
@@ -623,12 +895,84 @@ private:
         {
             return BracTok;
         }
-        //TODO: Should this call charPunc?
 
         return PuncTok;
     }
 
+
+    TokenStateEnum tokType();
 };
+
+
+class Replacer
+{
+public:
+    Replacer() :
+        mOrgStr(NULL),
+        mOrgMax(0),
+        mOrgPos(0),
+        mBufPos(0)
+    {
+    }
+    Replacer(const char* str) :
+        mOrgStr(NULL),
+        mOrgMax(0),
+        mOrgPos(0),
+        mBufPos(0)
+    {
+        setSrc(str);
+    }
+
+    void setSrc(const char* str);
+
+    inline void setSrc(const std::string& str)
+        {
+        setSrc(str.c_str());
+    }
+    bool replace(int orgpos, int orglen, const char* with);
+
+    inline bool replace(int orgpos, int orglen, const std::string& with)
+    {
+        return replace(orgpos, orglen, with.c_str());
+    }
+
+    const char* c_str();
+    std::string str();
+
+private:
+    void copy(const char* from, int len, int orglen);
+    void ensureAlloc(size_t neededsize);
+
+private:
+    const char* mOrgStr;
+    int mOrgMax;
+    int mOrgPos;
+    jvar::Buffer mBuf;
+    int mBufPos;
+};
+
+
+class Splitter : public jvar::Parser
+{
+public:
+    Splitter(const char* str, const char* delim) :
+        Parser(str),
+        mDelim(delim)
+    {
+        // Note 1: Splitter doesn't work if delim is whitespace--whitespace is ignored
+        //         unless inside of quotes.
+        // Note 2: delim is ignored if inside quotes.
+
+        setSinglePunc(true);
+    }
+
+    std::string get();
+
+private:
+    std::string mDelim;
+};
+
+
 
 } // jvar
 

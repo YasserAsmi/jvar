@@ -17,9 +17,12 @@ namespace jvar
 
 /**
  * BArray is a base class and maintains a contiguous chunk of memory as an dynamic array.
- * It can also work with fixed memory.  It allows finding items and inserting them in
- * order using binary search.  Unless there is a special need, use ObjArray class instead
+ * It can also work with fixed memory allocated elsewhere.  It allows finding items and inserting
+ * them in order using binary search. Unless there is a special need, use ObjArray class instead
  * of using this directly.
+ *
+ * NOTE: This container doesn't call constructor/destructor for items.  It only manages
+ * memory.  For that functionality, use ObjArray.
  */
 class BArray
 {
@@ -262,9 +265,14 @@ public:
     enum
     {
         /**
-         * Array is currently using fixed buffer provided via useFixedMemory
+         * Internal: Array is currently using fixed buffer provided via useFixedMemory
          */
-        FLAG_FIXEDBUF = 0x1
+        FLAG_FIXEDBUF = 0x1,
+
+        /**
+         * Internal: Used to indicate case insensitive.  Only used by specific compare functions.
+         */
+        FLAG_CASEINS = 0x2
     };
 
 protected:
@@ -291,76 +299,16 @@ protected:
      */
     void ensureAlloc(int desiredlen);
 
-
-};
-
-/**
- * Iter class template is used to iterate over an array as follows:
- * \code
- *    for (Iter<Obj> i; arr.forEach(i); )
- *    {
- *        foo(i->field);
- *    }
- * \endcode
- */
-template <class T>
-class Iter
-{
-public:
-    Iter() :
-        mPos(-1),
-        mObj(NULL),
-        mKey(NULL)
+    void resetLength()
     {
+        *mCountPtr = 0;
     }
-    /**
-     * @return   Returns a reference to the current element
-     */
-    inline T* operator->()
-    {
-        return mObj;
-    }
-    /**
-     * @return   Dereferences the current element
-     */
-    inline T& operator*()
-    {
-        return *mObj;
-    }
-    /**
-     * @return   Returns a pointer to the current element
-     */
-    inline T* operator&()
-    {
-        return mObj;
-    }
-    /**
-     * @return Returns the position of of the current element in the iterator
-     */
-    inline int pos()
-    {
-        return mPos;
-    }
-    /**
-     * @return Returns the key for the current element if available
-     */
-    inline const char* key()
-    {
-        return mKey;
-    }
-
-public:
-/** \cond INTERNAL */
-    int mPos;
-    T* mObj;
-    const char* mKey;
-/** \endcond */
 };
 
 
 /**
- * ObjArray is similar to std::vector.  It maintains a contiguous chunk of memory as an dynamic
- * array of objects.  It takes care of calling constructors and destructors.  It allows finding
+ * ObjArray is similar to stl::vector.  It maintains a contiguous chunk of memory as an dynamic
+ * array of objects.  It takes care of calling constructors and desctructors.  It allows finding
  * elements and inserting them in order using binary search.  It allows creating objects
  * directly on the array as well.
  */
@@ -372,8 +320,7 @@ public:
      * Construct a blank ObjArray.
      */
     inline ObjArray() :
-        BArray(sizeof(T), NULL),
-        mSupportImpl(NULL)
+        BArray(sizeof(T), NULL)
     {
     }
 
@@ -381,8 +328,7 @@ public:
      * Construct a blank ObjArray with \p as the comparison operator.
      */
     inline ObjArray(Compare comp) :
-        BArray(sizeof(T), comp),
-        mSupportImpl(NULL)
+        BArray(sizeof(T), comp)
     {
     }
 
@@ -390,8 +336,7 @@ public:
      * Construct an ObjArray and copy the data from \p src into it.
      */
     inline ObjArray(const ObjArray& src) :
-        BArray(sizeof(T), NULL),
-        mSupportImpl(NULL)
+        BArray(sizeof(T), NULL)
     {
         copyFrom((ObjArray&)src);
     }
@@ -400,8 +345,7 @@ public:
      * Construct an ObjArray and copy the data from \p src into it.
      */
     inline ObjArray(ObjArray& src) :
-        BArray(sizeof(T), NULL),
-        mSupportImpl(NULL)
+        BArray(sizeof(T), NULL)
     {
         copyFrom(src);
     }
@@ -433,8 +377,6 @@ public:
             T* obj = (T*)BArray::get(i);
             obj->~T();
         }
-
-        delete mSupportImpl;
     }
 
     /**
@@ -448,22 +390,21 @@ public:
     {
         T* obj = (T*)BArray::insert(pos, NULL);
 
-        // Inplace new the object using default constructor.
+        // Placement new the object using default constructor.
 
         return new(obj) T();
     }
 
     /**
      * Inserts an element at the provided position in the array.  The new element is not
-     * constructed by ths call.  The caller uses "inplace new" to call a non-default constructor.
+     * constructed by this call.  The caller uses "Placement new" to call a non-default constructor.
      *
      * @param  pos Position to insert
      *
      * @return     Pointer to the inserted element
      */
-    inline T* insertCustom(int pos)
+    inline T* insertPlain(int pos)
     {
-
         return (T*)BArray::insert(pos, NULL);
     }
 
@@ -476,16 +417,27 @@ public:
     {
         T* obj = (T*)BArray::append(NULL);
 
-        // Inplace new the object using default constructor.
+        // Placement new the object using default constructor.
 
         return new(obj) T();
+    }
+
+    /**
+     * Appends a new element at the end of the array (plain).  No constructor is called.
+     * The caller must construct using "placement new".
+     *
+     * @return Pointer to the newly created element
+     */
+    inline T* appendPlain()
+    {
+        return (T*)BArray::append(NULL);
     }
 
     /**
      * Adds a new element or modifies it if exists.
      *
      * @param  keyelem     Element to search and add if doesn't exist or modify
-     * @param  modifyfound Allow modifying the lement
+     * @param  modifyfound Allow modifying the element
      *
      * @return             Pointer to the added or modified element
      */
@@ -507,7 +459,7 @@ public:
 
         T* obj = (T*)BArray::insert(pos, NULL);
 
-        // Inplace new the object using copy constructor.
+        // Placement new the object using copy constructor.
 
         return new(obj) T(*keyelem);
     }
@@ -517,7 +469,7 @@ public:
      *
      * @param  keyelem Element to add
      *
-     * @return         Pointer to the added or modifed element
+     * @return         Pointer to the added element
      */
     inline T* add(const T* keyelem)
     {
@@ -566,6 +518,24 @@ public:
     }
 
     /**
+     * Deletes all elements
+     */
+    void clear()
+    {
+        // Call the destructor for all objects in the array.
+
+        for (int i = 0; i < BArray::length(); i++)
+        {
+            T* obj = (T*)BArray::get(i);
+            obj->~T();
+        }
+
+        BArray::clear();
+
+        mExtInterface.release();
+    }
+
+    /**
      * Finds the item
      *
      * @param  elem Element to find (only the key is used)
@@ -593,6 +563,19 @@ public:
             return NULL;
         }
         return (T*)BArray::get(pos);
+    }
+
+    /**
+     * Swaps two elements (no copy constructors are called)
+	 */
+    inline void swap(int pos1, int pos2)
+    {
+        // TODO: test this
+        T* p1 = (T*)BArray::get(pos1);
+        T* p2 = (T*)BArray::get(pos2);
+        T tmp(*p1);
+        *p1 = *p2;
+        *p2 = tmp;
     }
 
     /**
@@ -640,22 +623,34 @@ public:
     }
 
 /** \cond INTERNAL */
-    inline InterfaceImpl* setSupportImpl(InterfaceImpl* impl)
+
+    T* internalAdd(const T* keyelem, bool* created)
     {
-        delete mSupportImpl;
-        mSupportImpl = impl;
-        return mSupportImpl;
+        int pos;
+
+        if (BArray::binSearch(keyelem, pos))
+        {
+            *created = false;
+            return get(pos);
+        }
+
+        T* obj = (T*)BArray::insert(pos, NULL);
+
+        // Placement new the object using copy constructor.
+
+        *created = true;
+        return new(obj) T(*keyelem);
     }
 
-    inline InterfaceImpl* getSupportImpl()
+    inline jvar::RcLife<jvar::BaseInterface>& extInterface()
     {
-        return mSupportImpl;
+        return mExtInterface;
     }
 /** \endcond */
 
 protected:
 /** \cond INTERNAL */
-    InterfaceImpl* mSupportImpl;
+    jvar::RcLife<jvar::BaseInterface> mExtInterface;
 /** \endcond */
 
 private:
@@ -673,18 +668,15 @@ private:
             T* obj = (T*)BArray::get(i);
             T* srcobj = (T*)src.get(i);
 
-            // Inplace new the object using its copy constructor.
+            // Placement new the object using its copy constructor.
 
             new(obj) T(*srcobj);
         }
 
-        // Make a copy of the support interface.
+        // Make a copy of the ext interface.
+        // TODO: Double check this.  Make sure it works if src.ext is null
 
-        if (src.mSupportImpl)
-        {
-            delete mSupportImpl;
-            mSupportImpl = src.mSupportImpl->newImpl();
-        }
+        mExtInterface = src.mExtInterface;
     }
 };
 
@@ -699,8 +691,7 @@ class PropArray
 public:
     PropArray() :
         mData(NULL),
-        mIndex(NULL),
-        mSupp(NULL)
+        mIndex(NULL)
     {
         mData.reserve(INITSIZE);
         mIndex.reserve(INITSIZE);
@@ -841,6 +832,29 @@ public:
     }
 
     /**
+     * Returns a property element and optionally the name as stored
+     *
+     * @param  keyname Property key name
+     *
+     * @return         Pointer to the element or NULL
+     */
+    inline T* get(const char* keyname, const char** exactkeyname)
+    {
+        int pos;
+        if (indexFindPos(keyname, pos))
+        {
+            DataElem* dat = indexGet(pos);
+            if (dat)
+            {
+                *exactkeyname = dat->key.get();
+                return &(dat->value);
+            }
+        }
+
+        return NULL;
+    }
+
+    /**
      * Returns the element from a given position
      *
      * @param  pos Position
@@ -937,36 +951,21 @@ public:
     {
         mData.clear();
         mIndex.clear();
-        mClassName.clear();
-        mSupp = NULL;
+    }
+
+    /**
+     * Makes the property array case-insensitive
+     */
+    inline void makeCI()
+    {
+        setFlag(mIndex.mFlags, BArray::FLAG_CASEINS);
     }
 
 /** \cond Internal */
-    inline void setClassName(const char* name)
-    {
-        mClassName.set(name);
-    }
-    inline const char* getClassName()
-    {
-        return mClassName.get();
-    }
 
-    inline void setSuppData(void* supp)
+    inline jvar::RcLife<jvar::BaseInterface>& extInterface()
     {
-        mSupp = supp;
-    }
-    inline void* getSuppData()
-    {
-        return mSupp;
-    }
-    inline InterfaceImpl* setSupportImpl(InterfaceImpl* impl)
-    {
-        return mData.setSupportImpl(impl);
-    }
-
-    inline InterfaceImpl* getSupportImpl()
-    {
-        return mData.getSupportImpl();
+        return mData.extInterface();
     }
 
     void dbgDump()
@@ -1013,18 +1012,24 @@ private:
 
     ObjArray<DataElem> mData;
     ObjArray<int> mIndex;
-    PropKeyStr mClassName;
-    void* mSupp;
 
 private:
 
     bool indexFindPos(const char* findelem, int& pos)
     {
+        int (*cmp)(const char*, const char*);
+
         if (mIndex.length() == 0 || findelem == NULL)
         {
             pos = 0;
             return false;
         }
+
+        // Set the compare function based on case sensitive flag (makeCI)
+
+        cmp = isFlagSet(mIndex.mFlags, BArray::FLAG_CASEINS) ? strcasecmp : strcmp;
+
+        // Do a binary search
 
         int low = 0;
         int high = mIndex.length() - 1;
@@ -1037,7 +1042,7 @@ private:
 
             DataElem* dat = indexGet(mid);
 
-            int res = strcmp(dat->key.get(), findelem);
+            int res = cmp(dat->key.get(), findelem);
 
             if (res == 0)
             {
@@ -1121,23 +1126,51 @@ public:
         std::string s(elem);
         return ObjArray<std::string>::find(&s);
     }
+    /**
+     * Appends a new string to the array
+     */
+    void append(const char* str)
+    {
+        std::string* s = ObjArray<std::string>::append();
+        s->assign(str);
+    }
+    /**
+     * Appends a new string to the array
+     */
+    void append(const std::string& str)
+    {
+        std::string* s = ObjArray<std::string>::append();
+        *s = str;
+    }
+    /**
+     * Joins the elements separated and returns a string
+     *
+     * @param  sep Separator
+     * @return     Joined string
+     */
+    std::string join(const char* sep = NULL);
+
+    /**
+     * Splits a string separated a separators and returns the substrings in the array
+     * Whitespace is ignored unless inside quotes
+     * Separator cannot be whitespace
+     * Separator is ignored if inside quotes
+     *
+     * @param str String to split
+     * @param sep Separator
+     */
+    void split(const char* str, const char* sep);
 
 public:
     /**
      * Compare \p e1 with \p e2 (by calling std::string.compare()).
      */
-    static int compare(const void* e1, const void* e2)
-    {
-        const std::string* s1 = (std::string*)e1;
-        const std::string* s2 = (std::string*)e2;
-
-        return s1->compare(s2->c_str());
-    }
+    static int compare(const void* e1, const void* e2);
 };
 
 
 /**
- * KeywordArray maintains a string keyword to integer relationship
+ * KeywordArray maintains a string keyword to integer relationship.  Meant to be used on static arrays.
  */
 class KeywordArray
 {
@@ -1165,24 +1198,13 @@ public:
     }
 
     /**
-     * Converts a keyword into a int value
+     * Converts a keyword into a int value (case-insensitive)
      *
      * @param  keyword Keword to lookup
      *
      * @return         Value or -1 if not found
      */
-    uint toValue(const char* keyword)
-    {
-        assert(keyword);
-        for (size_t i = 0; i < mArrSize; i++)
-        {
-            if (strcasecmp(keyword, mArr[i].keyword) == 0)
-            {
-                return mArr[i].value;
-            }
-        }
-        return (uint)-1;
-    }
+    uint toValue(const char* keyword);
 
     /**
      * Returns a keyword associated with the value
@@ -1191,23 +1213,75 @@ public:
      *
      * @return       A pointer to the keyword
      */
-    const char* toKeyword(uint value)
-    {
-        for (size_t i = 0; i < mArrSize; i++)
-        {
-            if (value == mArr[i].value)
-            {
-                return mArr[i].keyword;
-            }
-        }
-        return NULL;
-    }
+    const char* toKeyword(uint value);
+
+    /**
+     * Returns a keyword associated with the value using Binary Search.
+     * NOTE: The values are expected to be in sorted order.
+     *
+     * @param  value Value to lookup
+     *
+     * @return       A pointer to the keyword
+     */
+    const char* toKeywordSorted(uint value);
 
 private:
     const Entry* mArr;
     size_t mArrSize;
 };
 
+
+
+/**
+ * StrMap is a map of strings with string key values
+ */
+class StrMap : public PropArray<std::string>
+{
+public:
+    void add(const char* key, const char* str)
+    {
+        std::string* p = PropArray<std::string>::add(key);
+        if (p && str)
+        {
+            p->assign(str);
+        }
+    }
+    void add(const std::string& key, const std::string& str)
+    {
+        add(key.c_str(), str.c_str());
+    }
+    bool remove(const std::string& str)
+    {
+        return PropArray<std::string>::remove(str.c_str());
+    }
+    std::string& operator[](const char* key)
+    {
+        std::string* p = get(key);
+        if (p)
+        {
+            return *p;
+        }
+        else
+        {
+            mNotFound.clear();
+            return mNotFound;
+        }
+    }
+private:
+    std::string mNotFound;
+};
+
+/**
+ * Replaces all instances of each key found in 'replacements' strmap with the corresponding
+ * value in 'str'
+ *
+ * @param str          [description]
+ * @param replacements [description]
+ */
+void replaceAll(std::string& str, jvar::StrMap& replacements);
+
+
 } // jvar
+
 
 #endif // _ARR_H

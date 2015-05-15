@@ -20,7 +20,7 @@ JsonParser::JsonParser(Variant& outvar, const char* jsontxt, uint flags /*= 0*/)
     }
     else
     {
-        if (tokenEquals("["))
+        if (tokenEquals('['))
         {
             parseArray(outvar);
         }
@@ -31,7 +31,7 @@ JsonParser::JsonParser(Variant& outvar, const char* jsontxt, uint flags /*= 0*/)
     }
 
     advance();
-    if (!eof() && !tokenEquals(""))
+    if (!failed() && !eof() && !token().empty())
     {
         std::string s;
         format(s, "Extra input '%s'", token().c_str());
@@ -40,7 +40,7 @@ JsonParser::JsonParser(Variant& outvar, const char* jsontxt, uint flags /*= 0*/)
 
     if (failed())
     {
-        dbgerr("Json parsing failed: %s\n", errMsg().c_str());
+        dbglog("Json parsing failed: %s\n", errMsg().c_str());
     }
 }
 
@@ -51,12 +51,12 @@ void JsonParser::parseObject(Variant& var)
     //    {}
     //    { members }
 
-    advance("{");
+    advance('{');
 
     var.createObject();
 
     parseMembers(var);
-    advance("}");
+    advance('}');
 }
 
 void JsonParser::parseMembers(Variant& var)
@@ -67,30 +67,31 @@ void JsonParser::parseMembers(Variant& var)
     // pair
     //    string : value
 
-    while (!tokenEquals("}") && !failed())
+    StrBld key;
+    while (!tokenEquals('}') && !failed())
     {
-        std::string key;
-
         // A property/key name can be a string.  Quotes can be single or double and
         // are optional in some cases.
 
+        key.clear();
+
         if (isString(token(), false))
         {
-            stripQuotes(isFlagSet(mFlags, FLAG_FLEXQUOTES));
-            key = token();
+            token().stripQuotes(isFlagSet(mFlags, FLAG_FLEXQUOTES));
+            key.moveFrom(token());
 
             advance();
         }
-        advance(":");
+        advance(':');
 
         Variant& newprop = var.addProperty(key.c_str());
 
         parseValue(newprop);
 
-        if (tokenEquals(","))
+        if (tokenEquals(','))
         {
             advance();
-            if (tokenEquals("}"))
+            if (tokenEquals('}'))
             {
                 setError("Found , followed by }");
             }
@@ -104,10 +105,10 @@ void JsonParser::parseArray(Variant& var)
     //    []
     //    [ elements ]
 
-    advance("[");
+    advance('[');
     var.createArray();
     parseElements(var);
-    advance("]");
+    advance(']');
 }
 
 
@@ -117,22 +118,22 @@ void JsonParser::parseElements(Variant& var)
     //    value
     //    value , elements
 
-    while (!tokenEquals("]") && !failed())
+    while (!tokenEquals(']') && !failed())
     {
         // Variant v;
         // parseValue(v);
         // var.append(v);
 
-        Variant* v = var.append(Variant::vEmpty);
+        Variant* v = var.append(VEMPTY);
         if (v)
         {
             parseValue(*v);
         }
 
-        if (tokenEquals(","))
+        if (tokenEquals(','))
         {
             advance();
-            if (tokenEquals("]"))
+            if (tokenEquals(']'))
             {
                 setError("Found , followed by ]");
             }
@@ -151,9 +152,9 @@ void JsonParser::parseValue(Variant& var)
     //    false
     //    null
 
-    if (isString(token(), true))
+    if (isNum(token()))
     {
-        parseString(var);
+        parseNum(var);
     }
     else if (isArray(token()))
     {
@@ -163,30 +164,31 @@ void JsonParser::parseValue(Variant& var)
     {
         parseObject(var);
     }
-    else if (isNum(token()))
-    {
-        parseNum(var);
-    }
-    else if (token().compare("true") == 0)
+    else if (tokenEquals("true"))
     {
         var = true;
 
         advance();
     }
-    else if (token().compare("false") == 0)
+    else if (tokenEquals("false"))
     {
         var = false;
 
         advance();
     }
-    else if (token().compare("null") == 0)
+    else if (tokenEquals("null"))
     {
-        var = Variant::vNull;
+        var = VNULL;
 
         advance();
     }
+    else if (isString(token(), true))
+    {
+        parseString(var);
+    }
     else
     {
+        var = VNULL;
         std::string err;
         format(err, "Invalid value '%s'", token().c_str());
         setError(err.c_str());
@@ -202,52 +204,68 @@ void JsonParser::parseNum(Variant& var)
     //    int exp
     //    int frac exp
 
-    std::string num;
-    while (isNum(token()) || tokenEquals("+") || tokenEquals("e") ||
-        tokenEquals("E") || tokenEquals("."))
+    StrBld num;
+    for (;;)
     {
-        num += token();
-
+        char c = token()[0];
+        if (!isDigit(c) && c != '+' && c != '-' && c != 'e' && c != 'E' && c != '.')
+        {
+            break;
+        }
+        num.append(token());
         advance();
     }
+    const char* numstr = num.c_str();
 
-    // Determine if the number is a double
-    bool isdbl = (num.find('E') != std::string::npos) || (num.find('e') != std::string::npos) ||
-        (num.find('.') != std::string::npos);
-
-    // Validate the number string (handle leading zero case)
-    bool valid = true;
-
-    if (num.length() >= 2)
+    bool isint = num.length() < 20;
+    if (isint)
     {
-        if (num[0] == '0')
+        const char* p = numstr;
+        while (*p)
         {
-            if (num[1] != '.')
+            if (*p == 'e' || *p == 'E' || *p == '.')
             {
-                valid = false;
+                isint = false;
+                break;
             }
+            p++;
         }
     }
 
-    // Convert the number string into a number
-    if (valid)
+    bool valid = false;
+    if (isint)
     {
-        if (isdbl)
+        if (num.length() >= 2 && *numstr == '0')
         {
-            double dbl = str2dbl(num.c_str(), &valid);
-            var = dbl;
+            // In json, ints are not allowed to start with zero, invalid
         }
         else
         {
-            longint li = str2int(num.c_str(), &valid);
-            var = li;
+            char* ench;
+            longint li = strtol(numstr, &ench, 10);
+            if (*ench == '\0')
+            {
+                valid = true;
+                var = li;
+            }
+        }
+    }
+    else
+    {
+        char* ench;
+        double dbl = strtod(numstr, &ench);
+        if (*ench == '\0')
+        {
+            valid = true;
+            var = dbl;
         }
     }
 
     if (!valid)
     {
+        var = VNULL;
         std::string err;
-        format(err, "Invalid number '%s'", num.c_str());
+        format(err, "Invalid number '%s'", numstr);
         setError(err.c_str());
     }
 }
@@ -255,12 +273,12 @@ void JsonParser::parseNum(Variant& var)
 
 void JsonParser::parseString(Variant& var)
 {
-    stripQuotes(isFlagSet(mFlags, FLAG_FLEXQUOTES));
-    var = token();
+    token().stripQuotes(isFlagSet(mFlags, FLAG_FLEXQUOTES));
+    var = token().toString();
     advance();
 }
 
-bool JsonParser::isString(const std::string& s, bool requirequotes)
+bool JsonParser::isString(StrBld& s, bool requirequotes)
 {
     int l = s.length();
     bool flexquotes = isFlagSet(mFlags, FLAG_FLEXQUOTES);

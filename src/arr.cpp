@@ -8,7 +8,7 @@
 namespace jvar
 {
 
-// BArray
+// BArray::
 
 void BArray::useFixedMem(void* memptr, int* countptr, int maxlen)
 {
@@ -251,5 +251,109 @@ void BArray::copyFrom(BArray& src, bool alloconly, bool move)
         mCountPtr = src.mCountPtr;
     }
 }
+
+
+// KeywordArray::
+
+uint KeywordArray::toValue(const char* keyword)
+{
+    assert(keyword);
+    for (size_t i = 0; i < mArrSize; i++)
+    {
+        if (strcasecmp(keyword, mArr[i].keyword) == 0)
+        {
+            return mArr[i].value;
+        }
+    }
+    return (uint)-1;
+}
+
+const char* KeywordArray::toKeyword(uint value)
+{
+    for (size_t i = 0; i < mArrSize; i++)
+    {
+        if (value == mArr[i].value)
+        {
+            return mArr[i].keyword;
+        }
+    }
+    return NULL;
+}
+
+const char* KeywordArray::toKeywordSorted(uint value)
+{
+    int low = 0;
+    int high = mArrSize - 1;
+    while (low <= high)
+    {
+        int mid = (low + high) / 2;
+        if (value == mArr[mid].value)
+        {
+            return mArr[mid].keyword;
+        }
+        else if (value > mArr[mid].value)
+        {
+            low = mid + 1;
+        }
+        else
+        {
+            high = mid - 1;
+        }
+    }
+    return NULL;
+}
+
+// StrArray::
+
+std::string StrArray::join(const char* sep)
+{
+    std::string s;
+    for (Iter<std::string> it; forEach(it); )
+    {
+        if (it.pos() >= 1 && sep)
+        {
+            s += sep;
+        }
+        s += *it;
+    }
+    return s;
+}
+
+void StrArray::split(const char* str, const char* sep)
+{
+    // Splitter doesn't work if sep is just whitespace--whitespace is ignored
+    Splitter splt(str, sep);
+
+    clear();
+    while (!splt.eof())
+    {
+        append(splt.get());
+    }
+}
+
+int StrArray::compare(const void* e1, const void* e2)
+{
+    const std::string* s1 = (std::string*)e1;
+    const std::string* s2 = (std::string*)e2;
+
+    return s1->compare(s2->c_str());
+}
+
+
+// ReplaceAll function
+
+void replaceAll(std::string& str, jvar::StrMap& replacements)
+{
+    std::string match;
+    for (Iter<std::string> i; replacements.forEach(i); )
+    {
+        //dbglog("%d replacing %s -> %s\n", i.pos(), i.key(), i->c_str());
+
+        match.assign(i.key());
+
+        replaceAll(str, match, *i);
+    }
+}
+
 
 } // jvar

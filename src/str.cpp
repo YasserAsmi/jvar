@@ -24,24 +24,51 @@ void lowerCase(std::string& str)
     }
 }
 
-bool equal(const char* s1, const char* s2, bool ignorecase)
+void trimLeft(std::string& str)
+{
+    size_t len = str.size();
+    size_t i = 0;
+    while (i < len && isspace(str[i]))
+    {
+        i++;
+    }
+    str.erase(0, i);
+}
+
+void trimRight(std::string& str)
+{
+    size_t i = str.size();
+    while (i > 0 && isspace(str[i - 1]))
+    {
+        i--;
+    }
+    str.erase(i, str.size());
+}
+
+bool equal(const char* s1, const char* s2)
 {
     if (s1 && s2)
     {
-        if (ignorecase)
-        {
-            return (strcasecmp(s1, s2) == 0);
-        }
-        else
-        {
-            return (strcmp(s1, s2) == 0);
-        }
+        return (strcmp(s1, s2) == 0);
     }
     else
     {
         return (s1 == s2);
     }
 }
+
+bool equalCI(const char* s1, const char* s2)
+{
+    if (s1 && s2)
+    {
+        return (strcasecmp(s1, s2) == 0);
+    }
+    else
+    {
+        return (s1 == s2);
+    }
+}
+
 
 bool vformat(string& outstr, const char* fmt, va_list varg)
 {
@@ -99,7 +126,7 @@ void format(string& outstr, const char* fmt, ...)
     }
 }
 
-string format(const char* fmt, ...)
+string formatr(const char* fmt, ...)
 {
     string outstr;
 
@@ -114,7 +141,6 @@ string format(const char* fmt, ...)
     }
     return outstr;
 }
-
 
 string int2str(longint n)
 {
@@ -137,7 +163,7 @@ longint str2baseint(const string& str, int base, bool* valid /* = NULL */)
     bool res = true;
 
     errno = 0;
-    int value = strtol(str.c_str(), &end, base);
+    longint value = strtol(str.c_str(), &end, base);
     if ((errno != 0 && value == 0) || (*end != '\0'))
     {
         value = 0;
@@ -168,6 +194,23 @@ double str2dbl(const string& str, bool* valid  /* = NULL */)
         *valid = res;
     }
     return value;
+}
+
+uint strHashSedgewick(const char* str, size_t len)
+{
+    // Robert Sedgewick hash function
+    uint b = 378551;
+    uint a = 63689;
+    uint hash = 0;
+
+    while (*str)
+    {
+        hash = hash * a + (*str);
+        a = a * b;
+        str++;
+    }
+
+    return hash;
 }
 
 
@@ -244,14 +287,151 @@ uint makeUnicode(const char* s, int maxlen, int* lenused /*= NULL*/)
 }
 
 
-// Parser
+void replaceAll(std::string& str, const std::string& match, const std::string& with)
+{
+    size_t startpos = 0;
+    while ((startpos = str.find(match, startpos)) != std::string::npos)
+    {
+        str.replace(startpos, match.length(), with);
+        startpos += with.length();
+    }
+}
+
+std::string pathParent(const std::string p, const char* delim)
+{
+    if (delim == NULL)
+    {
+        // TODO: use OS specific value
+        delim = "/";
+    }
+    size_t pos = p.find_last_of(delim);
+
+    if (pos == std::string::npos)
+    {
+        return "";
+    }
+    return p.substr(0, pos);
+}
+
+std::string pathChild(const std::string p, const char* delim)
+{
+    if (delim == NULL)
+    {
+        // TODO: use OS specific value
+        delim = "/";
+    }
+    return p.substr(p.find_last_of(delim) + 1);
+}
+
+std::string pathThisProc(const char* replfn)
+{
+    std::string path;
+    char buf[1024];
+    ssize_t ret = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (ret != -1)
+    {
+        buf[ret] = '\0';
+        path.assign(buf, ret);
+    }
+    if (replfn != NULL)
+    {
+        path = pathParent(path);
+        path += "/";
+        path += replfn;
+    }
+    return path;
+}
+
+// StrBld::
+
+bool StrBld::appendFmt(const char* fmt, ...)
+{
+    va_list va;
+    va_start(va, fmt);
+    bool ret = appendVFmt(fmt, va);
+    va_end(va);
+    return ret;
+}
+
+
+bool StrBld::appendVFmt(const char* fmt, va_list varg)
+{
+    const int stackbufsize = 256;
+    char stackbuf[stackbufsize];
+    int count;
+    va_list orgvarg;
+
+    va_copy(orgvarg, varg);
+
+    // Try to format using the small stack buffer.
+
+    count = vsnprintf(stackbuf, stackbufsize, fmt, varg);
+    if (count < 0)
+    {
+        // Negative number means formatting error.
+        return false;
+    }
+
+    if (count < stackbufsize)
+    {
+        // Non-negative and less than the given size so string was completely written.
+        append(stackbuf);
+    }
+    else
+    {
+        // Format the string with a sufficiently large heap buffer.
+        char* buf = ensureAlloc(mLen + count + 1);
+        buf += mLen;
+        int fincount = vsnprintf((char*)buf, count + 1, fmt, orgvarg);
+        if (fincount < 0)
+        {
+            return false;
+        }
+        mLen += fincount;
+    }
+    return true;
+}
+
+
+void StrBld::stripQuotes(bool allowsingle)
+{
+    char c1;
+    char c2;
+
+    if (mLen >= 2)
+    {
+        char* buf = (char*)mBuf.ptr();
+
+        c1 = buf[0];
+        c2 = buf[mLen - 1];
+
+        if ((c1 == '"' && c2 == '"') ||
+            (allowsingle && c1 == '\'' && c2 == '\'') )
+        {
+            mLen--;
+
+            if (mLen > 1)
+            {
+                memmove(buf, buf + 1, mLen);
+                mLen--;
+            }
+        }
+    }
+}
+
+
+// Parser::
 
 Parser::Parser(const char* txt) :
     mTxt(txt),
+    mToken(128),
     mTokParsed(false),
     mPos(0),
     mLineNum(1),
-    mErr(false)
+    mErr(false),
+    mTokStartPos(0),
+    mTokEndPos(0),
+    mSinglePunc(false)
 {
     if (txt)
     {
@@ -264,25 +444,14 @@ Parser::Parser(const char* txt) :
 }
 
 
-void Parser::parseToken()
+void Parser::internalParse()
 {
-    if (mErr)
-    {
-        mToken = "";
-        return;
-    }
-    if (mTokParsed)
-    {
-        return;
-    }
-
     TokenStateEnum state = NullTok;
     bool done = false;
     char lastc = '\0';
     char quotec = '\0';
 
     mToken.clear();
-    mToken.reserve(128);
     while (!eof())
     {
         char c = mTxt[mPos];
@@ -312,6 +481,8 @@ void Parser::parseToken()
                 {
                     quotec = c;
                 }
+
+                mTokStartPos = mPos;
 
                 append(c);
             }
@@ -409,7 +580,7 @@ void Parser::parseToken()
 
                     case PuncTok:
                     {
-                        if ((lastc != ':') && charPunc(c))
+                        if (!mSinglePunc && (lastc != ':') && charPunc(c))
                         {
                             append(c);
                         }
@@ -435,43 +606,32 @@ void Parser::parseToken()
         mPos++;
     }
 
+    mTokEndPos = mPos;
+
     mTokParsed = true;
 }
 
 
-void Parser::stripQuotes(bool allowsingle)
-{
-    int l = mToken.length();
-    char c1;
-    char c2;
-
-    if (l >= 2)
-    {
-        c1 = mToken[0];
-        c2 = mToken[l - 1];
-
-        if ((c1 == '"' && c2 == '"') ||
-            (allowsingle && c1 == '\'' && c2 == '\'') )
-        {
-            mToken.erase(l - 1, 1);
-            mToken.erase(0, 1);
-        }
-    }
-}
-
 void Parser::captureDelim(const char* delim)
 {
-    string s = token();
+    StrBld s(token());
+
+    int startpos = mTokStartPos;
+    int endpos = mTokEndPos;
 
     while (!eof() && !tokenEquals(delim))
     {
         advance();
         if (!tokenEquals(delim))
         {
-            s += token();
+            s.append(mToken);
+            endpos = mTokEndPos;
         }
     }
-    mToken = s;
+    mToken.moveFrom(s);
+
+    mTokStartPos = startpos;
+    mTokEndPos = endpos;
 }
 
 void Parser::setError(const char* msg)
@@ -487,22 +647,137 @@ void Parser::setError(const char* msg)
     }
 }
 
-void Parser::advance(const char* match)
+
+void Parser::expectErr(char c, const char* str)
 {
-    if (mErr)
+    char tmp[2];
+    std::string s;
+    ensureTok();
+    if (c)
     {
-        return;
+        tmp[0] = c;
+        tmp[1] = '\0';
+        str = tmp;
     }
-    if (tokenEquals(match))
+    format(s, "Expecting [%s] but found [%s] ", str, c_str());
+    setError(s.c_str());
+}
+
+
+Parser::TokenStateEnum Parser::tokType()
+{
+    ensureTok();
+
+    char c = mToken[0];
+
+    if (c != '\0')
     {
-        advance();
+        return detState(c);
     }
-    else
+
+    return NullTok;
+}
+
+// Replacer::
+
+void Replacer::setSrc(const char* str)
+{
+    mOrgStr = str;
+    mOrgMax = strlen(str) + 1;
+    mOrgPos = 0;
+    mBufPos = 0;
+    mBuf.alloc(mOrgMax + 1);
+}
+
+bool Replacer::replace(int orgpos, int orglen, const char* with)
+{
+    dbgtru(mOrgStr != NULL);
+
+    if (mOrgStr == NULL || with == NULL)
     {
-        std::string s;
-        format(s, "Expecting '%s' but found '%s' ", match, token().c_str());
-        setError(s.c_str());
+        return false;
+    }
+    if (orgpos > mOrgPos)
+    {
+        copy(mOrgStr + mOrgPos, orgpos - mOrgPos, orgpos - mOrgPos);
+    }
+
+    copy(with, strlen(with), orglen);
+
+    return true;
+}
+
+const char* Replacer::c_str()
+{
+    if (mOrgStr && mOrgPos < mOrgMax)
+    {
+        copy(mOrgStr + mOrgPos, mOrgMax - mOrgPos, mOrgMax - mOrgPos);
+        mOrgStr = NULL;
+    }
+
+    return (const char*)mBuf.cptr();
+}
+
+std::string Replacer::str()
+{
+    std::string s;
+    const char* p = c_str();
+
+    if (p)
+    {
+        s.assign(p);
+    }
+
+    return s;
+}
+
+
+void Replacer::copy(const char* from, int len, int orglen)
+{
+    if (len > 0)
+    {
+        ensureAlloc(mBufPos + len + 1);
+
+        memcpy((char*)mBuf.ptr() + mBufPos, from, len);
+        mBufPos += len;
+    }
+
+    mOrgPos += orglen;
+}
+
+void Replacer::ensureAlloc(size_t neededsize)
+{
+    if (neededsize > mBuf.size())
+    {
+        size_t newsize = mBuf.size() * 2;
+        if (newsize < neededsize)
+        {
+            newsize = neededsize;
+        }
+
+        mBuf.reAlloc(neededsize);
     }
 }
+
+
+// Splitter::
+
+std::string Splitter::get()
+{
+    std::string s;
+    if (!eof())
+    {
+        captureDelim(mDelim.c_str());
+        s = tokFullStr();
+        advance();
+    }
+    if (s.compare(mDelim) == 0)
+    {
+        s.clear();
+    }
+    return s;
+}
+
+
 
 } // jvar

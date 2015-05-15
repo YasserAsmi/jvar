@@ -39,7 +39,7 @@ void showSimple()
     // pop() all elements from the array
 
     Variant p;
-    while (!(p = arr.pop()).isNull())
+    while (!(p = arr.pop()).empty())
     {
         printf("Pop %s\n", p.toString().c_str());
     }

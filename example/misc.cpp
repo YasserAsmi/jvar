@@ -24,7 +24,7 @@ void showFormat()
     string s;
     string s2;
 
-    s2 = format("%08d", a);
+    s2 = formatr("%08d", a);
     printf("%s\n", s2.c_str());
 
     format(s, "[%s] was built before...another string is being built now with hex 0x%x", s2.c_str(), a);

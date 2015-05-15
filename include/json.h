@@ -87,38 +87,35 @@ protected:
     /**
      * Check if \p s is convertable to a string.
      */
-    bool isString(const std::string& s, bool requirequotes);
+    bool isString(StrBld& s, bool requirequotes);
 
     /**
      * *Quickly* check if \p s is convertable to an array. Don't rely on this method!
      */
-    inline bool isArray(const std::string& s)
+    inline bool isArray(StrBld& s)
     {
-        return s.compare("[") == 0;
+        return s.equals('[');
     }
-
-    /**
-     * *Quickly* check if \p s is convertable to an object. Don't rely on this method!
-     */
-    inline bool isObject(const std::string& s)
+    inline bool isObject(StrBld& s)
     {
-        return s.compare("{") == 0;
+        return s.equals('{');
     }
 
     /**
      * Check if \p s is convertable to a number (specifically an integer).
      */
-    inline bool isNum(const std::string& s)
+    inline bool isNum(StrBld& s)
     {
-        int l = s.length();
-        if (l >= 1)
+        char c = s[0];
+        if (isDigit(c) || c == '-')
         {
-            if (isdigit(s[0]) || s[0] == '-')
-            {
-                return true;
-            }
+            return true;
         }
         return false;
+    }
+    inline bool isDigit(char c)
+    {
+        return (c >='0' && c <= '9');
     }
 
 protected:
