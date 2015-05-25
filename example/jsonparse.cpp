@@ -134,21 +134,31 @@ void bench(const char* fn)
 
     jsontxt.readFile(fn, true);
 
+    const int count = 100;
     Variant v;
+    bool success;
+
     start = getTickCount();
-    if (v.parseJson((const char*)jsontxt.cptr()))
+    for (int i = 0; i < count; i++)
     {
-        printf("PASS parse time=%lu\n", getTickCount() - start);
+        success = v.parseJson((const char*)jsontxt.cptr());
+    }
+    if (success)
+    {
+        printf("PASS, total parse time for %d passes=%lu\n", count, getTickCount() - start);
     }
     else
     {
-        printf("FAIL parse time=%lu\n", getTickCount() - start);
+        printf("FAIL, total parse time for %d passes=%lu\n", count, getTickCount() - start);
     }
 
     start = getTickCount();
     StrBld sb;
-    v.makeJson(sb);
-    printf("Pretty str time=%lu\n", getTickCount() - start);
+    for (int i = 0; i < count; i++)
+    {
+        v.makeJson(sb);
+    }
+    printf("Pretty str time for %d passes=%lu\n", count, getTickCount() - start);
 
     std::string outfn = "/tmp/out.json";
     std::ofstream f;
@@ -161,5 +171,8 @@ int main(int argc, char** argv)
 {
     showSimple();
     testJsonSuite();
-//    bench(argv[1]);
+    if (argc > 1)
+    {
+        bench(argv[1]);
+    }
 }

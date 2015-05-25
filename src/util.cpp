@@ -128,12 +128,21 @@ void Buffer::reAlloc(size_t size)
 
 void Buffer::dblOr(size_t neededsize)
 {
-    size_t newsize = mSize * 2;
+    size_t newsize = mSize;
+
+    if (newsize == 0)
+    {
+        newsize = 64;
+    }
+    else
+    {
+        newsize *= 2;
+    }
     if (newsize < neededsize)
     {
         newsize = neededsize;
     }
-    reAlloc(neededsize);
+    reAlloc(newsize);
 }
 
 void Buffer::free()
