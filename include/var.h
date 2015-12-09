@@ -1132,6 +1132,27 @@ inline Variant operator+(double lhs, const Variant& rhs)
     return res;
 }
 
+
+/**
+ * Global operator to compare a variant and string
+ */
+inline bool operator==(const Variant& lhs, const std::string& rhs)
+{
+    return lhs.toString() == rhs;
+}
+inline bool operator!=(const Variant& lhs, const std::string& rhs) { return !(lhs == rhs); }
+
+/**
+ * Global operator to compare a variant and const char *
+ */
+inline bool operator==(const Variant& lhs, const char *rhs)
+{
+    return strcmp(lhs.toString().c_str(), rhs) == 0;
+}
+inline bool operator!=(const Variant& lhs, const char *rhs) { return !(lhs == rhs); }
+
+
+
 } // jvar
 
 #endif // _VAR_H
