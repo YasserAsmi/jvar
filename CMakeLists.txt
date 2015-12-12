@@ -35,3 +35,10 @@ target_link_libraries(ex_func jvar -lrt)
 
 add_executable(ex_misc example/misc.cpp)
 target_link_libraries(ex_misc jvar -lrt)
+
+install (TARGETS jvar 
+	     ARCHIVE DESTINATION lib
+         LIBRARY DESTINATION lib
+         RUNTIME DESTINATION bin)
+
+install (DIRECTORY include/ DESTINATION include/jvar)
