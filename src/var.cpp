@@ -4,7 +4,9 @@
 #include "var.h"
 #include "json.h"
 
+#if __cplusplus > 199711L
 #include <initializer_list>
+#endif
 
 namespace jvar
 {
@@ -734,6 +736,11 @@ void Variant::createFunction(Variant (*func)(Variant& env, Variant& arg))
     }
 }
 
+/*
+ * Code requires C++11 to work - see below for backwards-compatible code.
+ */
+#if __cplusplus > 199711L
+
 Variant Variant::operator() (std::initializer_list<const jvar::Variant>&& values)
 {
     if (mData.type != V_FUNCTION) return VNULL;
@@ -777,6 +784,107 @@ Variant Variant::operator() (const Variant& value1, const Variant& value2, const
 {
     return (*this)({value1, value2, value3, value4});
 }
+
+/*
+ * Pre-C++11 code (does not require init lists)
+ */
+#else
+
+Variant Variant::operator() ()
+{
+    if (mData.type == V_FUNCTION)
+    {
+        Variant arg;
+
+        arg.createArray();
+
+        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+    }
+    return VNULL;
+}
+
+Variant Variant::operator() (const Variant& value1)
+{
+    if (mData.type == V_FUNCTION)
+    {
+        Variant arg;
+        Variant* p;
+
+        arg.createArray();
+
+        p = arg.append();
+        p->internalSetPtr(&value1);
+
+        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+    }
+    return VNULL;
+}
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2)
+{
+    if (mData.type == V_FUNCTION)
+    {
+        Variant arg;
+        Variant* p;
+
+        arg.createArray();
+
+        p = arg.append();
+        p->internalSetPtr(&value1);
+        p = arg.append();
+        p->internalSetPtr(&value2);
+
+        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+    }
+    return VNULL;
+}
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3)
+{
+    if (mData.type == V_FUNCTION)
+    {
+        Variant arg;
+        Variant* p;
+
+        arg.createArray();
+
+        p = arg.append();
+        p->internalSetPtr(&value1);
+        p = arg.append();
+        p->internalSetPtr(&value2);
+        p = arg.append();
+        p->internalSetPtr(&value3);
+
+        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+    }
+    return VNULL;
+}
+
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3,
+    const Variant& value4)
+{
+    if (mData.type == V_FUNCTION)
+    {
+        Variant arg;
+        Variant* p;
+
+        arg.createArray();
+
+        p = arg.append();
+        p->internalSetPtr(&value1);
+        p = arg.append();
+        p->internalSetPtr(&value2);
+        p = arg.append();
+        p->internalSetPtr(&value3);
+        p = arg.append();
+        p->internalSetPtr(&value4);
+
+        return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+    }
+    return VNULL;
+}
+#endif
 
 bool Variant::addEnv(const char* varname, const Variant& value /* = vEmpty */)
 {

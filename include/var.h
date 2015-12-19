@@ -12,7 +12,10 @@
 #include "arr.h"
 #include "str.h"
 #include <math.h>
+
+#if __cplusplus > 199711L
 #include <initializer_list>
+#endif
 
 /**
  * The null Variant.
@@ -716,6 +719,8 @@ public:
      */
     bool addEnv(const char* varname, const Variant& value = vEmpty);
 
+#if __cplusplus > 199711L
+
     /**
      * Executes the function object with any number of parameters.
      *
@@ -727,6 +732,8 @@ public:
      * be used as shorthand if only four arguments are needed.
      */
     Variant operator() (std::initializer_list<const jvar::Variant>&& values);
+
+#endif
 
     /**
      * Executes the function object with no parameters.
