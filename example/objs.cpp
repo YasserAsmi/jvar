@@ -86,8 +86,12 @@ void showObjOfArr()
     showIter(obj);
 }
 
+
 int main(int argc, char** argv)
 {
+    showSimple();
+    showAltInit();
+    showObjOfArr();
     showSimple();
     showAltInit();
     showObjOfArr();

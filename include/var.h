@@ -16,6 +16,10 @@
 #define VNULL Variant::sNull
 #define VEMPTY Variant::sEmpty
 
+#if __cplusplus > 199711L
+#include <initializer_list>
+#endif
+
 #define VAR_PATH_DELIM     "."
 
 namespace jvar
@@ -756,9 +760,21 @@ public:
      * @return         Success
      */
     bool addEnv(const char* varname, const Variant& value = VEMPTY);
-	 /**
-     * Executes the function object with no parameters.
-     */    
+
+#if __cplusplus > 199711L
+    /**
+     * Executes the function object with any number of parameters.
+     *
+     * This method is called with a brace-enclosed parameter list - see
+     * \ref func.cpp for an example.
+     *
+     * The overloads of operator() taking zero to four parameters call this
+     * method to do real work and return the result. They can therefore
+     * be used as shorthand if only four arguments are needed.
+     */
+    Variant operator() (std::initializer_list<const jvar::Variant>&& values);
+#endif
+
 	Variant operator() ();
     Variant operator() (const Variant& value1);
     Variant operator() (const Variant& value1, const Variant& value2);
@@ -1002,7 +1018,7 @@ public:
     void internalAdd(const Variant& lhs, const Variant& rhs);
     void internalSetPtr(const Variant* v);
 
-/** \endcond */
+    /** \endcond */
 };
 
 /** \cond INTERNAL */

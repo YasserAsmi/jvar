@@ -134,7 +134,7 @@ void bench(const char* fn)
 
     jsontxt.readFile(fn, true);
 
-    const int count = 100;
+    const int count = 1;
     Variant v;
     bool success;
 
