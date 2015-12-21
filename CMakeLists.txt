@@ -19,6 +19,12 @@ if(CXX11)
 endif(CXX11)
 message(STATUS "CMAKE_CXX_FLAGS = " ${CMAKE_CXX_FLAGS})
 
+option(AUTOADDPROP "Enable adding properties on assignment, without using addProperty" OFF)
+message(STATUS "AUTOADDPROP = " ${AUTOADDPROP})
+if(AUTOADDPROP)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAUTOADDPROP")
+endif(AUTOADDPROP)
+
 add_library(jvar STATIC src/str.cpp src/util.cpp src/arr.cpp src/var.cpp src/json.cpp)
 
 add_executable(ex_basics example/basics.cpp)

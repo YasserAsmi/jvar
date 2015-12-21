@@ -534,6 +534,11 @@ void Variant::createObject(const char* initvalue /* = NULL*/)
         {
             JsonParser json(*this, initvalue, JsonParser::FLAG_FLEXQUOTES | JsonParser::FLAG_OBJECTONLY);
         }
+
+#ifdef AUTOADDPROP
+        mData.flags |= Variant::VF_AUTOADDPROP;
+#endif
+
     }
     else
     {
