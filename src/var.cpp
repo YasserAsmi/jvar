@@ -4,6 +4,10 @@
 #include "var.h"
 #include "json.h"
 
+#if __cplusplus > 199711L
+#include <initializer_list>
+#endif
+
 namespace jvar
 {
 
@@ -848,6 +852,59 @@ void Variant::createFunction(Variant (*func)(Variant& env, Variant& arg))
     }
 }
 
+/*
+ * Code requires C++11 to work - see below for backwards-compatible code.
+ */
+#if __cplusplus > 199711L
+
+Variant Variant::operator() (std::initializer_list<const jvar::Variant>&& values)
+{
+    if (mData.type != V_FUNCTION) return VNULL;
+
+    Variant arg;
+
+    arg.createArray();
+
+    for (const auto& value : values)
+    {
+        arg.append(value);
+    }
+
+    return mData.funcData->mFunc(mData.funcData->mEnv, arg);
+}
+
+Variant Variant::operator() ()
+{
+    return (*this)({});
+}
+
+Variant Variant::operator() (const Variant& value1)
+{
+    return (*this)({value1});
+}
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2)
+{
+    return (*this)({value1, value2});
+}
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3)
+{
+    return (*this)({value1, value2, value3});
+}
+
+
+Variant Variant::operator() (const Variant& value1, const Variant& value2, const Variant& value3,
+    const Variant& value4)
+{
+    return (*this)({value1, value2, value3, value4});
+}
+
+/*
+ * Pre-C++11 code (does not require init lists)
+ */
+#else
+
 Variant Variant::operator() ()
 {
     if (mData.type == V_FUNCTION)
@@ -942,6 +999,7 @@ Variant Variant::operator() (const Variant& value1, const Variant& value2, const
     }
     return VNULL;
 }
+#endif
 
 bool Variant::addEnv(const char* varname, const Variant& value /* = VEMPTY */)
 {
