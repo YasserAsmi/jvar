@@ -410,7 +410,7 @@ void StrBld::stripQuotes(bool allowsingle)
         {
             mLen--;
 
-            if (mLen > 1)
+            if (mLen >= 1)
             {
                 memmove(buf, buf + 1, mLen);
                 mLen--;
