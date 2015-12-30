@@ -16,6 +16,11 @@
 
 #endif
 
+#ifdef __CYGWIN__ 
+// This define blocks some functions such as strptime() that are required
+#undef __STRICT_ANSI__
+#endif 
+ 
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
