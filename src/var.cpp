@@ -1041,7 +1041,9 @@ bool Variant::deleteData()
             std::string* strdata = mData.strData();
 
             // Call the string destructor on the inplace newed object.
-            strdata->std::string::~string();
+            using namespace std;
+	    strdata->std::string::~string();
+            //strdata->std::string::~basic_string();
         }
         break;
 

@@ -3,6 +3,10 @@
 
 #include "util.h"
 
+#ifdef __APPLE__
+#include <sys/timeb.h>
+#endif
+
 namespace jvar
 {
 
@@ -53,6 +57,11 @@ void dbghex(const char* label, const void* ptr, int len)
 
 ulongint getTickCount()
 {
+#ifdef __APPLE__
+    timeb tb;
+    ftime(&tb);		    
+    return tb.millitm + (tb.time & 0xfffff) * 1000;
+#else
     struct timespec ts;
 
     if (clock_gettime(CLOCK_MONOTONIC, &ts))
@@ -61,6 +70,7 @@ ulongint getTickCount()
     }
 
     return (ts.tv_sec * 1000) + ts.tv_nsec / 1000000L;
+#endif
 }
 
 void tsAddMsecs(struct timespec* ts, longint millisecs)

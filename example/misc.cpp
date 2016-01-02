@@ -73,8 +73,28 @@ void showArray()
 }
 
 
+void bugreport()
+{
+    jvar::Variant inputData;
+    std::string message = "[\"{\\\"msg\\\":\\\"connect\\\",\\\"session\\\":\\\"pjwLzc25gD\\\",\\\"version\\\":\\\"1\\\",\\\"support\\\":[\\\"1\\\",\\\"pre2\\\",\\\"pre1\\\"]}\"]";
+
+    if (inputData.parseJson(message.c_str()))
+    {
+        for (int i=0; i<inputData.length(); i++)	
+	{
+             jvar::Variant packet;
+             packet.parseJson(inputData[i].toString().c_str());
+             printf("input = %s\n", inputData.toString().c_str());
+             printf("msg = %s\n", packet["msg"].toString().c_str());
+	}
+    }
+
+    printf("success\n");
+}
+
 int main(int argc, char** argv)
 {
-    showFormat();
-    showArray();
+//    showFormat();
+//    showArray();
+    bugreport();
 }

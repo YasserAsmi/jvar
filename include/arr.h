@@ -505,7 +505,7 @@ public:
         T* obj = get(pos);
         if (obj == NULL)
         {
-            return NULL;
+            return false;
         }
 
         // Call the destructor.
