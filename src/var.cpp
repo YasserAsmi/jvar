@@ -1266,6 +1266,44 @@ void Variant::assignBool(bool src)
     }
 }
 
+#if __cplusplus > 199711L
+
+void Variant::assignObj(std::initializer_list<const Variant>& src)
+{
+    bool is_object = true;
+
+    if (src.size() == 0)
+    {
+        createObject();
+        return;
+    }
+
+    for(const auto& v : src)
+    {
+        if (!v.isArray() || v.length() != 2 || !v[0].isString())
+            is_object = false;
+    }
+
+    if (is_object)
+    {
+        createObject();
+        for(const auto& v : src)
+        {
+            addProperty(v[0].toString(), v[1]);
+        }
+    }
+    else
+    {
+        createArray();
+        for (const auto& v: src)
+        {
+            push(v);
+        }
+    }
+}
+
+#endif
+
 std::string& Variant::s()
 {
     if (mData.type != V_STRING)

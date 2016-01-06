@@ -144,6 +144,19 @@ public:
         *this = src;
     }
 
+#if __cplusplus > 199711L
+
+    /**
+     * Assigns an object literal represented by initializer_list
+     */
+    Variant(std::initializer_list<const Variant>&& src)
+    {
+        assignObj(src);
+    }
+
+#endif
+
+
     /**
      * Destructor deletes all data in the object
      */
@@ -949,6 +962,15 @@ private:
      */
     void assignStr(const std::string& src);
 
+#if __cplusplus > 199711L
+
+    /**
+     * Assign an object defined by initializer list to this Variant.
+     */
+    void assignObj(std::initializer_list<const Variant>& src);
+
+#endif
+
     /**
      * Coerce the data in this Variant to a \ref longint.
      */
@@ -1170,5 +1192,7 @@ inline bool operator!=(const Variant& lhs, const char *rhs) { return !(lhs == rh
 
 
 } // jvar
+
+
 
 #endif // _VAR_H
