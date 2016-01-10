@@ -7,8 +7,14 @@ In particular, it implements a Variant type which is similar to 'var' in JS.  Li
 The Variant, combined with JSON and simple automatic memory management, makes for a very powerful data structure even in C++.
 jvar is designed to be very fast.  Because the backing data structures are optimized, JSON parsing speed is very fast.   Special attention has been paid to how often things are copied and how often memory is allocated.
 
-jvar doesn't use have any dependencies.  It doesn't use Boost and hardly uses STL.  It only uses std::string--but even with that jvar tries to minimize memory allocations.
-
+jvar doesn't use have any dependencies.  It doesn't use Boost and hardly uses STL.  It only uses std::string--but even with that jvar tries to minimize memory allocations.  Some C++11 features are optionally (via build option) used to provide more easy of use.
+ 
 Please take a look at the examples to see if you agree with the added expressiveness.
 
 Build! Go!
+
+
+Contributers:
+Yasser Asmi     https://github.com/YasserAsmi
+Alex Elzenaar   https://github.com/aelzenaar
+Andrei Markeev  https://github.com/andrei-markeev
