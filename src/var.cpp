@@ -38,10 +38,14 @@ bool Variant::parseJson(const char* jsontxt)
     {
         return false;
     }
-
     JsonParser json(*this, jsontxt);
+    bool err = json.failed();
+    if (err)
+    {
+        clear();
+    }
     setModified();
-    return !json.failed();
+    return !err;
 }
 
 bool Variant::eq(const char* s)

@@ -73,7 +73,7 @@ void showArray()
 }
 
 
-void bugreport()
+void bugreport1()
 {
     // Test that shows an issue when using GCC5's libstd ABI
     jvar::Variant inputData;
@@ -82,20 +82,73 @@ void bugreport()
     if (inputData.parseJson(message.c_str()))
     {
         for (int i=0; i<inputData.length(); i++)
-	{
-             jvar::Variant packet;
-             packet.parseJson(inputData[i].toString().c_str());
-             printf("input = %s\n", inputData.toString().c_str());
-             printf("msg = %s\n", packet["msg"].toString().c_str());
-	}
+        {
+            jvar::Variant packet;
+            packet.parseJson(inputData[i].toString().c_str());
+            printf("input = %s\n", inputData.toString().c_str());
+            printf("msg = %s\n", packet["msg"].toString().c_str());
+        }
     }
 
     printf("success\n");
+}
+
+void testParse(const char* str)
+{
+    printf("\nParse: %s \n", str);
+    for (int i = 0; i < 2; i++)
+    {
+        Parser p(str);
+
+        if (p.failed())
+        {
+            printf("parsing failed: %s\n", p.errMsg().c_str());
+            return;
+        }
+
+        p.setSinglePunc(i == 1);
+        printf("Single(%s): ", i == 0 ? "No " : "Yes");
+
+        while (!p.eof())
+        {
+            printf("<%s> ", p.token().c_str());
+            p.advance();
+        }
+        printf("\n");
+    }
+}
+
+void bugreport2()
+{
+    // Test that showed a parsing bug with ,-
+    const char *test = "{\"angle\":[171.8,20,2,3,-96.3,20.6]}";
+
+    Variant array;
+    array.parseJson(test);
+    puts(array.toJsonString().c_str());
+
+
+    // Parser testing
+    testParse("");
+    testParse("'This is a string with a \\' followed\"");
+    testParse("'each', 'word', 'is', 'single', '\"quotes\"'");
+    testParse("_id, name,   count (_id)  , max(_id  ), count(*) ");
+    testParse("one,,two");
+    testParse("1,-2");
+    testParse("1, -2");
+    testParse("1,+2");
+    testParse("a+=42");
+    testParse(":,:,:-/");
+    testParse("name:[2],name:2");
+    testParse("0, 1.2, -33.04, 20");
+    testParse("name(attribute1, attrub2, 'attrib3')");
+    testParse("name(,,,)");
+    testParse("name(");
 }
 
 int main(int argc, char** argv)
 {
     showFormat();
     showArray();
-//    bugreport();
+    bugreport2();
 }

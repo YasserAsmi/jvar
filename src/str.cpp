@@ -580,7 +580,8 @@ void Parser::internalParse()
 
                     case PuncTok:
                     {
-                        if (!mSinglePunc && (lastc != ':') && charPunc(c))
+                        bool besingle = (lastc == ':') || (lastc == ',');
+                        if (!mSinglePunc && !besingle && charPunc(c))
                         {
                             append(c);
                         }
