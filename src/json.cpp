@@ -84,7 +84,11 @@ void JsonParser::parseMembers(Variant& var)
         }
         advance(':');
 
-        Variant& newprop = var.addProperty(key.c_str());
+        // Issue #24: addOrModifyProperty() allows duplicate properties to be added
+        // in the array. While JSON standard don't say what the right behavior is, jvar
+        // follows the JavaScript behavior and the value is set to the very last value set.
+
+        Variant& newprop = var.addOrModifyProperty(key.c_str());
 
         parseValue(newprop);
 

@@ -146,9 +146,43 @@ void bugreport2()
     testParse("name(");
 }
 
+void bugreport3()
+{
+    const char *test = ""
+"{"
+"  \"cmd\":\"sdata.json\","
+"  \"arg_s\":1,"
+"  \"time\":191451698,"
+"  \"ybase\":2010,"
+"  \"arg_m\":\"3\","
+"  \"irms\":[5.8,0.0,0.0,0.0],"
+"  \"vrms\":[121.8,0.1,0.1],"
+"  \"watt\":[693.6,0.0,0.0],"
+"  \"va\":[700.2,0.0,0.0],"
+"  \"var_\":[-95.9,0.0,-0.0],"
+"  \"power\":693.6,"
+"  \"angle\":[172.1,119.9,140.4],"
+"  \"period\":16668.0,"
+"  \"freq\":59.0,"
+"  \"energy\":42562362,"
+"  \"watthr\":[42562362,0,0],"
+"  \"vahr\":[46962595,0,0],"
+"  \"varhr\":[-6319438,0,0],"
+"  \"fwatthr\":[42668693,0,0],"
+"  \"fvarhr\":[-6211040,0,0],"
+"  \"energy\":9999999,"
+"  \"emul\":2.608076793215e-03"
+"}";
+
+    Variant array;
+    array.parseJson(test);
+
+    puts(array.toString().c_str());
+}
+
 int main(int argc, char** argv)
 {
     showFormat();
     showArray();
-    bugreport2();
+    bugreport3();
 }
