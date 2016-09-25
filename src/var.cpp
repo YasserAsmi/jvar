@@ -1054,18 +1054,21 @@ bool Variant::deleteData()
         case V_ARRAY:
         {
             delete mData.arrayData;
+            mData.arrayData = NULL;
         }
         break;
 
         case V_OBJECT:
         {
             delete mData.objectData;
+            mData.objectData = NULL;
         }
         break;
 
         case V_FUNCTION:
         {
             delete mData.funcData;
+            mData.funcData = NULL;
         }
         break;
 

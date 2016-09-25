@@ -918,6 +918,7 @@ private:
 
         std::string* strData() const
         {
+            assert(type == V_STRING);
             return (std::string*)&strMemData;
         }
     };

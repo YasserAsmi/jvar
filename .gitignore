@@ -1,2 +1,10 @@
-docs/html
-build
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+.browse.VC.db
+.browse.VC.db-shm
+.browse.VC.db-wal
+bin
+lib
