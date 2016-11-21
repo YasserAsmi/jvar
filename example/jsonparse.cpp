@@ -95,6 +95,7 @@ void testJsonSuite()
     if (dir == NULL)
     {
         printf("Error: failed to open jsontest directory\n");
+        closedir(dir);
         return;
     }
 
@@ -122,6 +123,8 @@ void testJsonSuite()
             }
         }
     }
+
+    closedir(dir);
 }
 
 #endif

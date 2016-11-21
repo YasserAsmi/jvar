@@ -534,8 +534,13 @@ public:
     const char* c_str()
     {
         char* buf = (char*)mBuf.ptr();
-        // Lazy null termination
-        buf[mLen] = '\0';
+        if(buf)
+        {
+            // Lazy null termination
+            buf[mLen] = '\0';
+        }
+        // May return buffer without zero termination,
+        // but better than writing to null pointer.
         return buf;
     }
     std::string toString()
@@ -554,7 +559,17 @@ public:
 
     inline int compare(const char* s)
     {
-        return strcmp(c_str(), s);
+        const char* cp = c_str();
+
+        if (cp)
+        {
+            return strcmp(cp, s);
+        }
+        else
+        {
+            // cp is null, fallback to direct comparison
+            return cp != s;
+        }
     }
     inline bool equals(const char* s)
     {
