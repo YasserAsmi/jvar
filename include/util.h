@@ -48,20 +48,23 @@
     /**
      * Log an info message
      */
-    #define dbglog(fmt, ...) \
-        do { fprintf(stderr, fmt, ## __VA_ARGS__); } while (0)
+    #define dbglog(...) dbglogX(__VA_ARGS__, "")
+    #define dbglogX(fmt, ...) \
+        do { fprintf(stderr, fmt "%s", __VA_ARGS__); } while (0)
 
     /**
      * Log an error message
      */
-    #define dbgerr(fmt, ...) \
-        do { fprintf(stderr, "Error: %s(%d): " fmt, __FILE__, __LINE__, ## __VA_ARGS__); } while (0)
+    #define dbgerr(...) dbgerrX(__VA_ARGS__, "") 
+    #define dbgerrX(fmt, ...) \
+        do { fprintf(stderr, "Error: %s(%d): " fmt "%s", __FILE__, __LINE__, __VA_ARGS__); } while (0)
 
     /**
      * Debug trace if enabled
      */
-    #define dbgtrc(fmt, ...) \
-        do { if (jvar::enable_dbgtrc) fprintf(stderr, "%s(%d): " fmt, __func__, __LINE__, ## __VA_ARGS__); } while (0)
+    #define dbgtrc(...) dbgtrcX(__VA_ARGS__, "")
+    #define dbgtrcX(fmt, ...) \
+        do { if (jvar::enable_dbgtrc) fprintf(stderr, "%s(%d): " fmt "%s", __func__, __LINE__, __VA_ARGS__); } while (0)
 
     /**
      * Write a message with the function and file
